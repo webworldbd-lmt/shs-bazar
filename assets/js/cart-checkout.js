@@ -13,7 +13,7 @@ let orderSettings = {
   minOrderAmount: 0,
   freeDeliveryThreshold: 0,
   enableFreeDelivery: false,
-  invoicePrefix: 'SHS-'
+  invoicePrefix: 'MK-'
 };
 let settingsCached = false;
 

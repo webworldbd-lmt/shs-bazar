@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shs-bazar-v1';
+const CACHE_NAME = 'market-koro-v1';
 
 // Static assets to precache
 const PRECACHE_ASSETS = [

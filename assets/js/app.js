@@ -37,7 +37,7 @@ window.addEventListener('appinstalled', () => {
   console.log('[PWA] App installed successfully');
   const lang = getCurrentLang();
   const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
-  showToast(t.installSuccess || 'SHS Bazar app installed successfully!');
+  showToast(t.installSuccess || 'Market Koro app installed successfully!');
 });
 
 export function installPWA() {
@@ -48,12 +48,12 @@ export function installPWA() {
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
-        showToast(t.installSuccess || 'SHS Bazar app installed successfully!');
+        showToast(t.installSuccess || 'Market Koro app installed successfully!');
       }
       deferredPrompt = null;
     });
   } else if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
-    showToast(lang === 'bn' ? 'SHS Bazar ইতিমধ্যে ইনস্টল করা আছে!' : 'SHS Bazar is already installed & running!');
+    showToast(lang === 'bn' ? 'Market Koro ইতিমধ্যে ইনস্টল করা আছে!' : 'Market Koro is already installed & running!');
   } else {
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isIOS) {
@@ -67,12 +67,12 @@ export function installPWA() {
 window.installPWA = installPWA;
 
 export function getCurrentLang() {
-  return localStorage.getItem('shs_lang') || 'en';
+  return localStorage.getItem('mk_lang') || 'en';
 }
 
 export function setLanguage(lang) {
   const targetLang = (lang === 'en' || lang === 'bn') ? lang : 'en';
-  localStorage.setItem('shs_lang', targetLang);
+  localStorage.setItem('mk_lang', targetLang);
   applyTranslations();
   showToast(targetLang === 'bn' ? 'ভাষা: বাংলা সিলেক্ট করা হয়েছে' : 'Language: English selected');
 }
@@ -127,7 +127,7 @@ window.toggleLanguage = toggleLanguage;
 
 // Theme Logic
 export function initTheme() {
-  const savedTheme = localStorage.getItem('shs_theme');
+  const savedTheme = localStorage.getItem('mk_theme');
   if (savedTheme === 'dark') {
     document.body.classList.add('dark-mode');
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -141,7 +141,7 @@ export function toggleDarkMode() {
   const isDark = document.body.classList.toggle('dark-mode');
   const theme = isDark ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('shs_theme', theme);
+  localStorage.setItem('mk_theme', theme);
   showToast(isDark ? 'Dark Mode Enabled' : 'Light Mode Enabled');
   if (typeof window.renderDrawer === 'function') {
     window.renderDrawer();
@@ -164,7 +164,7 @@ export function openShareModal() {
   }
 
   const siteUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/index.html');
-  const shareText = encodeURIComponent("Check out SHS Bazar for amazing local deals in Kushtia!");
+  const shareText = encodeURIComponent("Check out Market Koro for amazing local deals in Kushtia!");
   const encodedUrl = encodeURIComponent(siteUrl);
 
   modal.innerHTML = `
@@ -172,7 +172,7 @@ export function openShareModal() {
       <button class="bkash-close-btn" onclick="closeShareModal()"><i class="fas fa-times"></i></button>
       <div style="text-align: center; margin-bottom: 12px;">
         <img src="assets/images/logo.png" style="height: 48px; border-radius: 8px;" alt="Logo" loading="lazy">
-        <h3 style="color: var(--primary-color); font-size: 1.2rem; margin-top: 6px;">Share SHS Bazar</h3>
+        <h3 style="color: var(--primary-color); font-size: 1.2rem; margin-top: 6px;">Share Market Koro</h3>
         <p style="font-size: 0.82rem; color: var(--text-muted);">Spread the word with friends & family in Kushtia!</p>
       </div>
 
@@ -286,7 +286,7 @@ window.handleCopyWebsiteUrl = () => {
 };
 
 window.handleRateUsSubmit = () => {
-  showToast('Thank you for rating SHS Bazar!');
+  showToast('Thank you for rating Market Koro!');
   closeShareModal();
 };
 
@@ -319,8 +319,8 @@ export function renderDrawer() {
   drawer.innerHTML = `
     <div class="drawer-header">
       <div class="logo-container">
-        <img src="assets/images/logo.png" alt="SHS Bazar Logo" class="logo-img" loading="lazy">
-        <span class="brand-name">SHS Bazar</span>
+        <img src="assets/images/logo.png" alt="Market Koro Logo" class="logo-img" loading="lazy">
+        <span class="brand-name">Market Koro</span>
       </div>
       <button class="hamburger-btn" onclick="toggleDrawer()"><i class="fas fa-times"></i></button>
     </div>
@@ -381,7 +381,7 @@ export function renderDrawer() {
       <li><a href="contact.html" class="drawer-menu-item ${currentPath === 'contact.html' ? 'active' : ''}"><i class="fas fa-headset" style="width: 20px;"></i> <span>${t.contactUs}</span></a></li>
       <li><a href="about.html" class="drawer-menu-item ${currentPath === 'about.html' ? 'active' : ''}"><i class="fas fa-info-circle" style="width: 20px;"></i> <span>${t.aboutUs}</span></a></li>
       <li><a href="#" onclick="event.preventDefault(); toggleDrawer(); openShareModal();" class="drawer-menu-item"><i class="fas fa-share-alt" style="width: 20px; color: var(--accent-color);"></i> <span>${t.shareApp}</span></a></li>
-      <li><a href="#" onclick="event.preventDefault(); toggleDrawer(); installPWA();" class="drawer-menu-item" style="color: var(--primary-color); font-weight: 700;"><i class="fas fa-download" style="width: 20px; color: var(--primary-color);"></i> <span>${t.installApp || 'Install SHS Bazar App'}</span></a></li>
+      <li><a href="#" onclick="event.preventDefault(); toggleDrawer(); installPWA();" class="drawer-menu-item" style="color: var(--primary-color); font-weight: 700;"><i class="fas fa-download" style="width: 20px; color: var(--primary-color);"></i> <span>${t.installApp || 'Install Market Koro App'}</span></a></li>
 
       <!-- 5. LOGOUT (Bottom Divider & Item) -->
       ${isLoggedIn ? `

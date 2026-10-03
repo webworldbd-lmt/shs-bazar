@@ -1,4 +1,4 @@
-// SHS Bazar Authentication & User State Module
+// Market Koro Authentication & User State Module
 import {
   auth,
   db,
@@ -19,7 +19,7 @@ import {
 
 export const SUPER_ADMIN_EMAILS = [
   'banglabazaroffical@gmail.com',
-  'shsbazarofficial@gmail.com'
+  'marketkoroofficial@gmail.com'
 ];
 export const SUPER_ADMIN_EMAIL = SUPER_ADMIN_EMAILS[0];
 

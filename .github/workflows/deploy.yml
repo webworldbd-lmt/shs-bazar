@@ -1,4 +1,4 @@
-name: Deploy SHS Bazar to Firebase Hosting
+name: Deploy Market Koro to Firebase Hosting
 
 on:
   push:

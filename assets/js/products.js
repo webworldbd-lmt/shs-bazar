@@ -2,7 +2,7 @@
 import { db, collection, getDocs, doc, getDoc, query, where, limit, onSnapshot } from './firebase-config.js';
 import { isProductInWishlist } from './auth.js';
 
-export const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23F4F6F9'/%3E%3Cg transform='translate(100, 90)'%3E%3Crect x='0' y='0' width='100' height='80' rx='8' fill='none' stroke='%239CA3AF' stroke-width='6'/%3E%3Ccircle cx='30' cy='30' r='10' fill='%239CA3AF'/%3E%3Cpath d='M10 70 L35 40 L55 60 L70 45 L90 70 Z' fill='%239CA3AF'/%3E%3C/g%3E%3Ctext x='50%25' y='68%25' dominant-baseline='middle' text-anchor='middle' fill='%230B4D3C' font-size='18' font-weight='700' font-family='sans-serif'%3ESHS Bazar%3C/text%3E%3C/svg%3E";
+export const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300' viewBox='0 0 300 300'%3E%3Crect width='300' height='300' fill='%23F4F6F9'/%3E%3Cg transform='translate(100, 90)'%3E%3Crect x='0' y='0' width='100' height='80' rx='8' fill='none' stroke='%239CA3AF' stroke-width='6'/%3E%3Ccircle cx='30' cy='30' r='10' fill='%239CA3AF'/%3E%3Cpath d='M10 70 L35 40 L55 60 L70 45 L90 70 Z' fill='%239CA3AF'/%3E%3C/g%3E%3Ctext x='50%25' y='68%25' dominant-baseline='middle' text-anchor='middle' fill='%230B4D3C' font-size='18' font-weight='700' font-family='sans-serif'%3EMarket Koro%3C/text%3E%3C/svg%3E";
 
 export function getOptimizedImageUrl(url, width = 300, quality = 'auto') {
   if (!url || typeof url !== 'string') return FALLBACK_IMAGE;
@@ -25,7 +25,7 @@ let cachedCategories = null;
 export function clearCategoryCache() {
   cachedCategories = null;
   try {
-    sessionStorage.removeItem('shs_cached_categories');
+    sessionStorage.removeItem('mk_cached_categories');
   } catch (e) {}
 }
 
@@ -35,7 +35,7 @@ export async function fetchActiveCategories(forceRefresh = false) {
   }
   if (!forceRefresh) {
     try {
-      const sessionData = sessionStorage.getItem('shs_cached_categories');
+      const sessionData = sessionStorage.getItem('mk_cached_categories');
       if (sessionData) {
         cachedCategories = JSON.parse(sessionData);
         if (Array.isArray(cachedCategories)) {
@@ -72,7 +72,7 @@ export async function fetchActiveCategories(forceRefresh = false) {
 
     cachedCategories = list;
     try {
-      sessionStorage.setItem('shs_cached_categories', JSON.stringify(list));
+      sessionStorage.setItem('mk_cached_categories', JSON.stringify(list));
     } catch (e) {}
     return list;
   } catch (err) {
@@ -113,7 +113,7 @@ export function subscribeToActiveCategories(onData, onError) {
         });
         cachedCategories = list;
         try {
-          sessionStorage.setItem('shs_cached_categories', JSON.stringify(list));
+          sessionStorage.setItem('mk_cached_categories', JSON.stringify(list));
         } catch (e) {}
         if (typeof onData === 'function') onData(list);
       },
@@ -163,7 +163,7 @@ export async function fetchPublishedProducts(limitCount = null, retries = 3, del
       if (products.length > 0 || !limitCount) {
         cachedPublishedProducts = products;
         try {
-          sessionStorage.setItem('shs_cached_products', JSON.stringify(products));
+          sessionStorage.setItem('mk_cached_products', JSON.stringify(products));
         } catch (e) {}
       }
 
@@ -179,7 +179,7 @@ export async function fetchPublishedProducts(limitCount = null, retries = 3, del
 
   // Soft fallback if cache exists
   try {
-    const sessionData = sessionStorage.getItem('shs_cached_products');
+    const sessionData = sessionStorage.getItem('mk_cached_products');
     if (sessionData) {
       const parsed = JSON.parse(sessionData);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -212,7 +212,7 @@ export function subscribeToPublishedProducts(onData, onError) {
         });
         cachedPublishedProducts = products;
         try {
-          sessionStorage.setItem('shs_cached_products', JSON.stringify(products));
+          sessionStorage.setItem('mk_cached_products', JSON.stringify(products));
         } catch (e) {}
         if (typeof onData === 'function') onData(products);
       },
@@ -247,7 +247,7 @@ export function renderSkeletonCards(count = 4) {
 }
 
 export function renderErrorState(message, retryCallbackName) {
-  const lang = localStorage.getItem('shs_lang') || 'en';
+  const lang = localStorage.getItem('mk_lang') || 'en';
   const retryText = lang === 'bn' ? 'পুনরায় চেষ্টা করুন' : 'Try Again';
   const defaultMsg = lang === 'bn'
     ? 'প্রোডাক্ট লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে আপনার নেটওয়ার্ক চেক করে আবার চেষ্টা করুন।'
@@ -267,7 +267,7 @@ export function renderErrorState(message, retryCallbackName) {
 }
 
 export function renderEmptyState(message) {
-  const lang = localStorage.getItem('shs_lang') || 'en';
+  const lang = localStorage.getItem('mk_lang') || 'en';
   const defaultMsg = lang === 'bn' ? 'কোনো প্রোডাক্ট পাওয়া যায়নি' : 'No products found';
 
   return `
@@ -338,7 +338,7 @@ export async function fetchBanners() {
     return cachedBanners;
   }
   try {
-    const sessionData = sessionStorage.getItem('shs_cached_banners');
+    const sessionData = sessionStorage.getItem('mk_cached_banners');
     if (sessionData) {
       cachedBanners = JSON.parse(sessionData);
       return cachedBanners;
@@ -360,7 +360,7 @@ export async function fetchBanners() {
       const result = list.length > 0 ? list : DEFAULT_BANNERS;
       cachedBanners = result;
       try {
-        sessionStorage.setItem('shs_cached_banners', JSON.stringify(result));
+        sessionStorage.setItem('mk_cached_banners', JSON.stringify(result));
       } catch (e) {}
       return result;
     })();
@@ -385,7 +385,7 @@ export function renderProductCard(product) {
   const imageSrc = getOptimizedImageUrl(rawImage, 300);
   const sellerId = product.sellerId || 'admin';
 
-  const lang = localStorage.getItem('shs_lang') || 'en';
+  const lang = localStorage.getItem('mk_lang') || 'en';
   const addToCartText = lang === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart';
   const stockOutText = lang === 'bn' ? 'স্টক আউট' : 'Stock Out';
 

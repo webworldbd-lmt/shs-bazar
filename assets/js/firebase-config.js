@@ -1,4 +1,4 @@
-// Firebase Configuration and Initialization Module for SHS Bazar
+// Firebase Configuration and Initialization Module for Market Koro
 // Import standard SDK modules from Firebase CDN (v10 JS ESM)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {

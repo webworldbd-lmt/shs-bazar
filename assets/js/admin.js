@@ -35,7 +35,7 @@ let cachedAdminSettings = null;
 export function clearAdminSettingsCache() {
   cachedAdminSettings = null;
   try {
-    sessionStorage.removeItem('shs_cached_admin_settings');
+    sessionStorage.removeItem('mk_cached_admin_settings');
   } catch (e) {}
 }
 
@@ -45,7 +45,7 @@ export async function fetchAdminSettings(forceRefresh = false) {
   }
   if (!forceRefresh) {
     try {
-      const sessionData = sessionStorage.getItem('shs_cached_admin_settings');
+      const sessionData = sessionStorage.getItem('mk_cached_admin_settings');
       if (sessionData) {
         cachedAdminSettings = JSON.parse(sessionData);
         if (cachedAdminSettings) return cachedAdminSettings;
@@ -60,21 +60,21 @@ export async function fetchAdminSettings(forceRefresh = false) {
     delivery: { insideKushtia: 100, outsideKushtia: 160 },
     payment: { bKashNumber: '01342697743', codEnabled: true },
     general: {
-      siteName: 'SHS Bazar',
+      siteName: 'Market Koro',
       hotline: '+8809658183506',
       supportEmail: 'saripofficialsupport@gmail.com',
       autoReply: DEFAULT_AUTO_REPLY
     },
     branding: { logoUrl: '', faviconUrl: '' },
     social: {
-      facebookUrl: 'https://facebook.com/shsbazarofficial',
+      facebookUrl: 'https://facebook.com/marketkoroofficial',
       whatsappNumber: '01342697743',
-      telegramUrl: 'https://t.me/shsbazarofficial'
+      telegramUrl: 'https://t.me/marketkoroofficial'
     },
-    order: { minOrderAmount: 0, freeDeliveryThreshold: 0, enableFreeDelivery: false, invoicePrefix: 'SHS-' },
+    order: { minOrderAmount: 0, freeDeliveryThreshold: 0, enableFreeDelivery: false, invoicePrefix: 'MK-' },
     policies: { returnPolicyHtml: '', shippingPolicyHtml: '', privacyPolicyHtml: '' },
     maintenance: { enabled: false, message: 'সাইট রক্ষণাবেক্ষণ চলছে, শীঘ্রই ফিরে আসছি' },
-    seo: { metaTitle: 'SHS Bazar - Online Shopping in Kushtia', metaDescription: 'SHS Bazar offers online shopping in Kushtia, Bangladesh.' },
+    seo: { metaTitle: 'Market Koro - Online Shopping in Kushtia', metaDescription: 'Market Koro offers online shopping in Kushtia, Bangladesh.' },
     analytics: { googleAnalyticsId: '', facebookPixelId: '' }
   };
 
@@ -134,7 +134,7 @@ export async function fetchAdminSettings(forceRefresh = false) {
 
     cachedAdminSettings = settingsResult;
     try {
-      sessionStorage.setItem('shs_cached_admin_settings', JSON.stringify(settingsResult));
+      sessionStorage.setItem('mk_cached_admin_settings', JSON.stringify(settingsResult));
     } catch (e) {}
 
     return settingsResult;
@@ -175,7 +175,7 @@ export async function saveAdminOrderSettings(data) {
     minOrderAmount: Number(data.minOrderAmount || 0),
     freeDeliveryThreshold: Number(data.freeDeliveryThreshold || 0),
     enableFreeDelivery: Boolean(data.enableFreeDelivery),
-    invoicePrefix: (data.invoicePrefix || 'SHS-').trim(),
+    invoicePrefix: (data.invoicePrefix || 'MK-').trim(),
     updatedAt: new Date()
   }, { merge: true });
   clearAdminSettingsCache();
@@ -550,7 +550,7 @@ export async function saveAdminProduct(productData, productId = null) {
     const payload = {
       ...productData,
       sellerId: 'admin',
-      sellerName: 'SHS Bazar Admin',
+      sellerName: 'Market Koro Admin',
       updatedAt: new Date()
     };
 

@@ -31,7 +31,7 @@ exports.sendTelegramOrderNotification = functions.firestore
     const paymentMethod = orderData.paymentMethod ? orderData.paymentMethod.toUpperCase() : "COD";
     const district = orderData.shippingAddress ? orderData.shippingAddress.district : "Kushtia";
 
-    const message = `🛍️ *NEW ORDER PLACED on SHS Bazar!* 🛍️\n\n` +
+    const message = `🛍️ *NEW ORDER PLACED on Market Koro!* 🛍️\n\n` +
       `📦 *Order ID:* \`${orderId}\`\n` +
       `👤 *Customer:* ${customerName}\n` +
       `📞 *Phone:* ${customerPhone}\n` +
