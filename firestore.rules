@@ -80,7 +80,7 @@ service cloud.firestore {
 
     match /banners/{bannerId} {
       allow read: if true;
-      allow write: if isSuperAdmin();
+      allow write: if isAdmin();
     }
 
     match /settings/{settingId} {
