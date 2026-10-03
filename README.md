@@ -1,6 +1,6 @@
-# SHS Bazar — E-commerce Website
+# Market Koro — E-commerce Website
 
-"SHS Bazar" is a mobile-responsive e-commerce platform designed specifically for the Kushtia, Bangladesh market.
+"Market Koro" is a mobile-responsive e-commerce platform designed specifically for the Kushtia, Bangladesh market.
 
 ## Tech Stack & Architecture
 - **Frontend**: Plain HTML5, CSS3, JavaScript (Vanilla ESM Modules — No build step, framework, or Node.js runtime required).
@@ -23,7 +23,7 @@
 ├── .github/workflows/deploy.yml   # GitHub Actions automated Firebase deployment
 ├── assets/
 │   ├── css/style.css             # Main stylesheet & mobile-first UI components
-│   ├── images/logo.png           # SHS Bazar Logo
+│   ├── images/logo.png           # Market Koro Logo
 │   └── js/
 │       ├── firebase-config.js    # Firebase initialization module
 │       ├── auth.js               # Firebase Auth & Super Admin role auto-detection
@@ -100,7 +100,7 @@ To enable automated Firebase Hosting deployment:
 - **Phone / WhatsApp**: `01342697743`
 - **Email**: `saripofficialsupport@gmail.com`
 - **Location**: Kushtia, Bangladesh
-- **Telegram Channel**: [https://t.me/shsbazarofficial](https://t.me/shsbazarofficial)
+- **Telegram Channel**: [https://t.me/marketkoroofficial](https://t.me/marketkoroofficial)
 - **Telegram Support**: `@shsaripofficial`
-- **Facebook**: [https://facebook.com/shsbazarofficial](https://facebook.com/shsbazarofficial)
-- **TikTok**: [https://tiktok.com/@shsbazarofficial](https://tiktok.com/@shsbazarofficial)
+- **Facebook**: [https://facebook.com/marketkoroofficial](https://facebook.com/marketkoroofficial)
+- **TikTok**: [https://tiktok.com/@marketkoroofficial](https://tiktok.com/@marketkoroofficial)

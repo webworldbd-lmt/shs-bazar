@@ -1,9 +1,9 @@
-// Invoice Generator for SHS Bazar Admin & Customer Orders
+// Invoice Generator for Market Koro Admin & Customer Orders
 export function generatePDFInvoice(order) {
   if (!order) return;
 
   const rawId = order.id || 'N/A';
-  const prefix = order.invoicePrefix || 'SHS-';
+  const prefix = order.invoicePrefix || 'MK-';
   const orderId = rawId.startsWith(prefix) ? rawId : `${prefix}${rawId}`;
   const cleanId = orderId.replace(/[^a-zA-Z0-9]/g, '');
 
@@ -123,7 +123,7 @@ export function generatePDFInvoice(order) {
 
         <div class="invoice-header">
           <div class="brand-logo-area">
-            <h1>SHS Bazar</h1>
+            <h1>Market Koro</h1>
             <span class="tagline">Online Shopping in Kushtia</span>
             <p>
               Kushtia, Khulna, Bangladesh<br />
@@ -205,7 +205,7 @@ export function generatePDFInvoice(order) {
         </div>
 
         <div class="invoice-footer">
-          <p style="font-weight: 600; color: #0B4D3C;">Thank you for shopping with SHS Bazar!</p>
+          <p style="font-weight: 600; color: #0B4D3C;">Thank you for shopping with Market Koro!</p>
           <p style="margin-top: 2px;">For order updates or queries, please contact Hotline +8809658183506 or WhatsApp 01342697743.</p>
         </div>
       </div>

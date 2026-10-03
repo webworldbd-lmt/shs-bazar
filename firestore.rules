@@ -12,7 +12,7 @@ service cloud.firestore {
       return isSignedIn() && (
         ('email' in request.auth.token && (
           request.auth.token.email.lower() == 'banglabazaroffical@gmail.com' ||
-          request.auth.token.email.lower() == 'shsbazarofficial@gmail.com'
+          request.auth.token.email.lower() == 'marketkoroofficial@gmail.com'
         )) ||
         (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')

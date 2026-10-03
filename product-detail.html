@@ -6,22 +6,22 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="SHS Bazar">
+  <meta name="apple-mobile-web-app-title" content="Market Koro">
   <link rel="icon" type="image/png" href="assets/images/pwa-192.png">
   <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product Details - SHS Bazar</title>
+  <title>Product Details - Market Koro</title>
 
   <!-- Open Graph / Meta Tags for Social Preview -->
   <meta property="og:type" content="product">
-  <meta property="og:title" id="og-title" content="SHS Bazar - Quality Online Shopping">
-  <meta property="og:description" id="og-description" content="Shop authentic products on SHS Bazar with Kushtia Express fast delivery.">
+  <meta property="og:title" id="og-title" content="Market Koro - Quality Online Shopping">
+  <meta property="og:description" id="og-description" content="Shop authentic products on Market Koro with Kushtia Express fast delivery.">
   <meta property="og:image" id="og-image" content="assets/images/logo.png">
   <meta property="og:url" id="og-url" content="">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" id="twitter-title" content="SHS Bazar">
-  <meta name="twitter:description" id="twitter-description" content="Shop authentic products on SHS Bazar.">
+  <meta name="twitter:title" id="twitter-title" content="Market Koro">
+  <meta name="twitter:description" id="twitter-description" content="Shop authentic products on Market Koro.">
   <meta name="twitter:image" id="twitter-image" content="assets/images/logo.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -73,7 +73,7 @@
     import { addToCart, applyTranslations, getCurrentLang, TRANSLATIONS, showToast } from './assets/js/app.js';
     import { currentUser, userProfile } from './assets/js/auth.js';
 
-    const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23F3F4F6'/%3E%3Cg transform='translate(250, 210)'%3E%3Crect x='0' y='0' width='100' height='80' rx='8' fill='none' stroke='%239CA3AF' stroke-width='6'/%3E%3Ccircle cx='30' cy='30' r='10' fill='%239CA3AF'/%3E%3Cpath d='M10 70 L35 40 L55 60 L70 45 L90 70 Z' fill='%239CA3AF'/%3E%3C/g%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' fill='%234B5563' font-size='22' font-weight='bold' font-family='sans-serif'%3ENo Image Available%3C/text%3E%3Ctext x='50%25' y='65%25' dominant-baseline='middle' text-anchor='middle' fill='%230B4D3C' font-size='18' font-weight='600' font-family='sans-serif'%3ESHS Bazar%3C/text%3E%3C/svg%3E";
+    const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23F3F4F6'/%3E%3Cg transform='translate(250, 210)'%3E%3Crect x='0' y='0' width='100' height='80' rx='8' fill='none' stroke='%239CA3AF' stroke-width='6'/%3E%3Ccircle cx='30' cy='30' r='10' fill='%239CA3AF'/%3E%3Cpath d='M10 70 L35 40 L55 60 L70 45 L90 70 Z' fill='%239CA3AF'/%3E%3C/g%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' fill='%234B5563' font-size='22' font-weight='bold' font-family='sans-serif'%3ENo Image Available%3C/text%3E%3Ctext x='50%25' y='65%25' dominant-baseline='middle' text-anchor='middle' fill='%230B4D3C' font-size='18' font-weight='600' font-family='sans-serif'%3EMarket Koro%3C/text%3E%3C/svg%3E";
 
     let currentRequestIdentifier = null;
     let currentLoadedProduct = null;
@@ -103,8 +103,8 @@
         const shareId = currentLoadedProduct?.id || currentLoadedProduct?.slug || currentRequestIdentifier;
         if (navigator.share && currentLoadedProduct) {
           navigator.share({
-            title: `${currentLoadedProduct.name} - SHS Bazar`,
-            text: `Check out ${currentLoadedProduct.name} on SHS Bazar!`,
+            title: `${currentLoadedProduct.name} - Market Koro`,
+            text: `Check out ${currentLoadedProduct.name} on Market Koro!`,
             url: getProductShareUrl(shareId)
           }).catch(() => {
             window.handleCopyProductLink(shareId);
@@ -169,20 +169,20 @@
       // Update Document Title & Open Graph Meta Tags dynamically
       const shareUrl = getProductShareUrl(product.id || product.slug);
       const mainImageUrl = product.images?.[0] || 'assets/images/logo.png';
-      const descText = product.shortDescription || (product.fullDescription ? product.fullDescription.substring(0, 150) + '...' : `Buy ${product.name} at best price on SHS Bazar.`);
+      const descText = product.shortDescription || (product.fullDescription ? product.fullDescription.substring(0, 150) + '...' : `Buy ${product.name} at best price on Market Koro.`);
 
-      document.title = `${product.name} - SHS Bazar`;
+      document.title = `${product.name} - Market Koro`;
 
       const updateMetaTag = (selector, content) => {
         const el = document.querySelector(selector);
         if (el) el.setAttribute('content', content);
       };
 
-      updateMetaTag('meta[property="og:title"]', `${product.name} - SHS Bazar`);
+      updateMetaTag('meta[property="og:title"]', `${product.name} - Market Koro`);
       updateMetaTag('meta[property="og:description"]', descText);
       updateMetaTag('meta[property="og:image"]', mainImageUrl);
       updateMetaTag('meta[property="og:url"]', shareUrl);
-      updateMetaTag('meta[name="twitter:title"]', `${product.name} - SHS Bazar`);
+      updateMetaTag('meta[name="twitter:title"]', `${product.name} - Market Koro`);
       updateMetaTag('meta[name="twitter:description"]', descText);
       updateMetaTag('meta[name="twitter:image"]', mainImageUrl);
 

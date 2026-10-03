@@ -1,9 +1,9 @@
-// Central Internationalization (i18n) Translations File for SHS Bazar
+// Central Internationalization (i18n) Translations File for Market Koro
 
 export const TRANSLATIONS = {
   en: {
     // Top Header & Navigation
-    brandName: "SHS Bazar",
+    brandName: "Market Koro",
     brandTagline: "Online Shopping in Kushtia",
     searchPlaceholder: "Search products in Kushtia...",
 
@@ -35,10 +35,10 @@ export const TRANSLATIONS = {
     contactUs: "Contact Us",
     aboutUs: "About Us",
     shareApp: "Share Website / Rate Us",
-    installApp: "Install SHS Bazar App",
-    installAppDesc: "Install SHS Bazar on your home screen for quick access & offline support",
-    installSuccess: "SHS Bazar App installed successfully!",
-    iosInstallGuide: "To install SHS Bazar: tap the Share button in Safari and select 'Add to Home Screen'.",
+    installApp: "Install Market Koro App",
+    installAppDesc: "Install Market Koro on your home screen for quick access & offline support",
+    installSuccess: "Market Koro App installed successfully!",
+    iosInstallGuide: "To install Market Koro: tap the Share button in Safari and select 'Add to Home Screen'.",
 
     // Homepage Sections
     featuredCategories: "Featured Categories",
@@ -157,7 +157,7 @@ export const TRANSLATIONS = {
     downloadInvoice: "Download Invoice",
     logoutAccount: "Logout Account",
     confirmLogoutTitle: "Confirm Logout",
-    confirmLogoutDesc: "Are you sure you want to log out of your SHS Bazar account?",
+    confirmLogoutDesc: "Are you sure you want to log out of your Market Koro account?",
     cancel: "Cancel",
     yesLogout: "Yes, Logout",
 
@@ -176,7 +176,7 @@ export const TRANSLATIONS = {
 
   bn: {
     // Top Header & Navigation
-    brandName: "SHS Bazar",
+    brandName: "Market Koro",
     brandTagline: "কুষ্টিয়ার অনলাইন শপিং প্ল্যাটফর্ম",
     searchPlaceholder: "কুষ্টিয়ায় পণ্য খুঁজুন...",
 
@@ -208,10 +208,10 @@ export const TRANSLATIONS = {
     contactUs: "যোগাযোগ করুন",
     aboutUs: "আমাদের সম্পর্কে",
     shareApp: "ওয়েবসাইট শেয়ার / রেটিং দিন",
-    installApp: "SHS Bazar অ্যাপ ইনস্টল করুন",
+    installApp: "Market Koro অ্যাপ ইনস্টল করুন",
     installAppDesc: "দ্রুত এবং অফলাইনে ব্যবহারের জন্য হোম স্ক্রিনে অ্যাপটি যুক্ত করুন",
-    installSuccess: "SHS Bazar অ্যাপ সফলভাবে ইনস্টল করা হয়েছে!",
-    iosInstallGuide: "SHS Bazar ইনস্টল করতে: সাফারি ব্রাউজারের শেয়ার বাটনে চাপ দিয়ে 'Add to Home Screen' সিলেক্ট করুন।",
+    installSuccess: "Market Koro অ্যাপ সফলভাবে ইনস্টল করা হয়েছে!",
+    iosInstallGuide: "Market Koro ইনস্টল করতে: সাফারি ব্রাউজারের শেয়ার বাটনে চাপ দিয়ে 'Add to Home Screen' সিলেক্ট করুন।",
 
     // Homepage Sections
     featuredCategories: "বিশেষ ক্যাটাগরি",
@@ -330,7 +330,7 @@ export const TRANSLATIONS = {
     downloadInvoice: "ইনভয়েস ডাউনলোড",
     logoutAccount: "লগআউট করুন",
     confirmLogoutTitle: "লগআউট নিশ্চিত করুন",
-    confirmLogoutDesc: "আপনি কি নিশ্চিত যে আপনি SHS Bazar অ্যাকাউন্ট থেকে লগআউট করতে চান?",
+    confirmLogoutDesc: "আপনি কি নিশ্চিত যে আপনি Market Koro অ্যাকাউন্ট থেকে লগআউট করতে চান?",
     cancel: "বাতিল",
     yesLogout: "হ্যাঁ, লগআউট",
 
