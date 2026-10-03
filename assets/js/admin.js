@@ -822,7 +822,17 @@ export async function saveBannerSlot(slotNumber, slotData, imageFile = null) {
     updatedAt: new Date()
   };
 
-  await setDoc(doc(db, 'banners', slotId), payload, { merge: true });
+  try {
+    await setDoc(doc(db, 'banners', slotId), payload, { merge: true });
+  } catch (err) {
+    console.error(`[saveBannerSlot] Firestore write error for doc "banners/${slotId}":`, {
+      code: err.code,
+      message: err.message,
+      error: err
+    });
+    throw err;
+  }
+
   try {
     const { clearBannerCache } = await import('./products.js');
     clearBannerCache();

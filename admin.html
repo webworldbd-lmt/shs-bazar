@@ -3240,8 +3240,10 @@
         showToast(`Slot ${slotNum} saved successfully!`);
         await loadBannersData();
       } catch (err) {
-        console.error(`Save Slot ${slotNum} error:`, err);
-        showToast(`Slot ${slotNum} save failed: ${err.message || 'Error'}`);
+        console.error(`Save Slot ${slotNum} error code:`, err.code);
+        console.error(`Save Slot ${slotNum} error message:`, err.message);
+        console.error(`Save Slot ${slotNum} full error:`, err);
+        showToast(`Slot ${slotNum} save failed: [${err.code || 'error'}] ${err.message || 'Error'}`);
       } finally {
         if (btn) {
           btn.disabled = false;
@@ -3282,8 +3284,10 @@
         showToast('All 8 banner slots saved successfully!');
         await loadBannersData();
       } catch (err) {
-        console.error('Save all banners error:', err);
-        showToast('Failed to save all banners: ' + (err.message || 'Error'));
+        console.error('Save all banners error code:', err.code);
+        console.error('Save all banners error message:', err.message);
+        console.error('Save all banners full error:', err);
+        showToast('Failed to save all banners: [' + (err.code || 'error') + '] ' + (err.message || 'Error'));
       } finally {
         if (btn) {
           btn.disabled = false;
