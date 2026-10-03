@@ -649,25 +649,54 @@ let carouselTimer = null;
 export function initCarousel(banners) {
   const container = document.getElementById('carousel-container');
   const dotsContainer = document.getElementById('carousel-dots');
-  if (!container || !dotsContainer || !banners || banners.length === 0) return;
+  const heroSec = document.querySelector('.hero-section');
+
+  if (carouselTimer) {
+    clearInterval(carouselTimer);
+    carouselTimer = null;
+  }
+
+  if (!container || !dotsContainer) return;
+
+  if (!banners || !Array.isArray(banners) || banners.length === 0) {
+    container.innerHTML = '';
+    dotsContainer.innerHTML = '';
+    if (heroSec) heroSec.style.display = 'none';
+    return;
+  }
+
+  if (heroSec) heroSec.style.display = 'block';
 
   container.innerHTML = banners.map(b => {
-    const imgSrc = (b.image && !b.image.startsWith('PASTE_CLOUDINARY_URL')) ? b.image : (b.fallbackImage || b.image);
-    const linkUrl = b.linkTo || 'shop.html';
+    const imgSrc = b.image || b.fallbackImage || FALLBACK_IMAGE;
+    const rawLink = (b.linkTo || b.linkUrl || '').trim();
+    const linkUrl = rawLink ? rawLink : '';
     const hasOverlay = (b.title && b.title.trim()) || (b.subtitle && b.subtitle.trim());
+    const clickAttr = linkUrl ? `onclick="window.location.href='${linkUrl.replace(/'/g, "\\'")}'"` : '';
+    const cursorStyle = linkUrl ? 'cursor: pointer;' : '';
+
     return `
-      <div class="carousel-slide" onclick="window.location.href='${linkUrl}'" style="cursor: pointer;">
-        <img src="${imgSrc}" alt="${b.title || 'Banner'}" loading="lazy" onerror="this.src='${b.fallbackImage || FALLBACK_IMAGE}'">
+      <div class="carousel-slide" ${clickAttr} style="${cursorStyle}">
+        <img src="${imgSrc}" alt="${b.title || 'Hero Banner'}" loading="lazy" onerror="this.src='${FALLBACK_IMAGE}'">
         ${hasOverlay ? `
         <div class="banner-overlay">
-          <h2>${b.title || ''}</h2>
-          <p>${b.subtitle || ''}</p>
+          ${b.title ? `<h2>${b.title}</h2>` : ''}
+          ${b.subtitle ? `<p>${b.subtitle}</p>` : ''}
         </div>` : ''}
       </div>
     `;
   }).join('');
 
-  dotsContainer.innerHTML = banners.map((_, idx) => `<div class="dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></div>`).join('');
+  if (banners.length > 1) {
+    dotsContainer.innerHTML = banners.map((_, idx) => `<div class="dot ${idx === 0 ? 'active' : ''}" data-index="${idx}"></div>`).join('');
+  } else {
+    dotsContainer.innerHTML = '';
+  }
+
+  currentSlide = 0;
+  container.style.transform = 'translateX(0%)';
+
+  if (banners.length <= 1) return;
 
   const goToSlide = (index) => {
     currentSlide = (index + banners.length) % banners.length;
@@ -680,7 +709,7 @@ export function initCarousel(banners) {
     if (carouselTimer) clearInterval(carouselTimer);
     carouselTimer = setInterval(() => {
       goToSlide(currentSlide + 1);
-    }, 2000); // 2-second rotation
+    }, 3500); // Smooth 3.5-second rotation
   };
 
   dotsContainer.querySelectorAll('.dot').forEach(dot => {
@@ -691,28 +720,30 @@ export function initCarousel(banners) {
     });
   });
 
-
   // Touch / Swipe Gesture support for mobile devices
   let startX = 0;
   let endX = 0;
-  const heroSec = container.closest('.hero-section') || container;
+  const touchArea = heroSec || container;
 
-  heroSec.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-  }, { passive: true });
+  if (!touchArea.dataset.swipeBound) {
+    touchArea.dataset.swipeBound = "true";
+    touchArea.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    }, { passive: true });
 
-  heroSec.addEventListener('touchend', (e) => {
-    endX = e.changedTouches[0].clientX;
-    const diff = startX - endX;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) {
-        goToSlide(currentSlide + 1);
-      } else {
-        goToSlide(currentSlide - 1);
+    touchArea.addEventListener('touchend', (e) => {
+      endX = e.changedTouches[0].clientX;
+      const diff = startX - endX;
+      if (Math.abs(diff) > 40 && banners.length > 1) {
+        if (diff > 0) {
+          goToSlide(currentSlide + 1);
+        } else {
+          goToSlide(currentSlide - 1);
+        }
+        startAutoRotate();
       }
-      startAutoRotate();
-    }
-  }, { passive: true });
+    }, { passive: true });
+  }
 
   startAutoRotate();
 }
@@ -1018,7 +1049,7 @@ async function initApp() {
         renderCategoriesUI(categoriesResult.value);
       }
 
-      if (bannersResult.status === 'fulfilled' && bannersResult.value && bannersResult.value.length > 0) {
+      if (bannersResult.status === 'fulfilled' && Array.isArray(bannersResult.value)) {
         initCarousel(bannersResult.value);
       }
 

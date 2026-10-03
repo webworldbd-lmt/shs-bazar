@@ -583,19 +583,19 @@
     <!-- Section 9: Banners Management -->
     <div id="sec-banners" style="display: none;">
       <div class="admin-section-card">
-        <div class="admin-section-header">
-          <h3 class="admin-section-title"><i class="fas fa-image"></i> Homepage Hero Banners</h3>
-          <button class="btn-accent" onclick="window.openBannerModal()"><i class="fas fa-plus"></i> Add Banner</button>
-        </div>
-
-        <div class="admin-toolbar">
-          <div class="admin-search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" id="banner-search" class="admin-search-input" placeholder="Search banner title..." oninput="window.renderBannersTable()">
+        <div class="admin-section-header" style="flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 class="admin-section-title"><i class="fas fa-images"></i> Hero Banner Management (8 Slots)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+              হোম পেজের হিরো স্লাইডারের জন্য সর্বমোট ৮টি স্লট পরিচালনা করুন। ছবি আপলোড করুন, লিংক দিন এবং প্রয়োজন অনুযায়ী চালু/বন্ধ ও পজিশন সেট করুন।
+            </p>
           </div>
+          <button class="btn-primary" id="save-all-banners-btn" onclick="window.saveAllBannersHandler()"><i class="fas fa-save"></i> Save All Banners</button>
         </div>
 
-        <div id="admin-banners-list"></div>
+        <div id="admin-banner-slots-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-top: 16px;">
+          <!-- Slot 1 to Slot 8 Cards will be injected here -->
+        </div>
       </div>
     </div>
 
@@ -935,10 +935,10 @@
       fetchCoupons,
       deleteCoupon,
       toggleCouponStatus,
-      addBanner,
-      updateBanner,
+      saveBannerSlot,
+      saveAllBannerSlots,
+      deleteBannerSlot,
       fetchBannersFromDB,
-      deleteBannerFromDB,
       toggleBannerVisibility,
       saveAdminProduct,
       uploadMediaFile,
@@ -2796,7 +2796,7 @@
     });
 
     // -------------------------------------------------------------
-    // Banner Management
+    // Hero Banner 8 Slots Management
     // -------------------------------------------------------------
     async function loadBannersData() {
       try {
@@ -2805,114 +2805,222 @@
         console.error('Error loading banners data:', err);
         adminState.banners = [];
       }
-      renderBannersTable();
+      renderBannerSlotsGrid();
     }
 
-    window.renderBannersTable = () => {
-      const container = document.getElementById('admin-banners-list');
-      const search = (document.getElementById('banner-search')?.value || '').toLowerCase();
+    window.renderBannerSlotsGrid = () => {
+      const container = document.getElementById('admin-banner-slots-grid');
+      if (!container) return;
 
-      let filtered = adminState.banners.filter(b => (b.title || '').toLowerCase().includes(search));
+      const slotsMap = {};
+      (adminState.banners || []).forEach(b => {
+        const slotNum = Number(b.slotNumber || (b.id || '').replace('slot_', '')) || 0;
+        if (slotNum >= 1 && slotNum <= 8) {
+          slotsMap[slotNum] = b;
+        }
+      });
 
-      if (filtered.length === 0) {
-        container.innerHTML = '<div class="admin-loading-container"><i class="fas fa-images" style="font-size:2rem;"></i><p>No banners found.</p></div>';
+      let html = '';
+      for (let i = 1; i <= 8; i++) {
+        const slot = slotsMap[i] || {
+          slotNumber: i,
+          title: `Slot ${i}`,
+          image: '',
+          linkTo: '',
+          isEnabled: false,
+          position: i
+        };
+
+        const isEnabled = slot.isEnabled !== undefined ? Boolean(slot.isEnabled) : Boolean(slot.isActive);
+        const imageUrl = slot.image || '';
+        const positionVal = slot.position !== undefined ? slot.position : i;
+
+        html += `
+          <div class="glass-card" id="slot-card-${i}" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="background: var(--primary-color); color: #FFF; font-weight: 800; font-size: 0.8rem; padding: 3px 10px; border-radius: 20px;">Slot ${i}</span>
+                  <span class="admin-badge ${isEnabled ? 'admin-badge-active' : 'admin-badge-inactive'}" id="slot-badge-${i}">
+                    ${isEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted);">Position:</label>
+                  <select id="slot-pos-${i}" class="form-control" style="padding: 2px 6px; font-size: 0.82rem; font-weight: bold; width: 60px; border-radius: 6px;">
+                    ${[1,2,3,4,5,6,7,8].map(p => `<option value="${p}" ${p === Number(positionVal) ? 'selected' : ''}>${p}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Image Preview Box -->
+              <div style="width: 100%; aspect-ratio: 16/7; background: #F1F5F9; border-radius: 10px; overflow: hidden; border: 1px dashed var(--border-color); display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 12px;">
+                ${imageUrl ? `
+                  <img id="slot-preview-${i}" src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                ` : `
+                  <div id="slot-placeholder-${i}" style="text-align: center; color: #94A3B8;">
+                    <i class="fas fa-image" style="font-size: 2rem; margin-bottom: 4px;"></i>
+                    <p style="font-size: 0.75rem; font-weight: 600;">No Image Uploaded</p>
+                  </div>
+                  <img id="slot-preview-${i}" src="" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                `}
+              </div>
+
+              <!-- File Input & Upload Control -->
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label class="form-label" style="font-size: 0.78rem;">Upload Banner Image (Cloudinary)</label>
+                <input type="file" id="slot-file-${i}" class="form-control" accept="image/*" style="font-size: 0.8rem; padding: 6px;" onchange="window.handleSlotFilePreview(${i})">
+                <input type="hidden" id="slot-img-url-${i}" value="${imageUrl}">
+              </div>
+
+              <!-- Link URL Input -->
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" style="font-size: 0.78rem;">Link URL (Optional Target)</label>
+                <input type="text" id="slot-link-${i}" class="form-control" value="${slot.linkTo || slot.linkUrl || ''}" placeholder="e.g. shop.html or offers.html" style="font-size: 0.82rem;">
+              </div>
+
+              <!-- Enable/Disable Toggle Switch -->
+              <div class="form-group" style="margin-bottom: 12px; background: rgba(0,0,0,0.02); padding: 8px 12px; border-radius: 8px;">
+                <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">
+                  <span>Show Banner on Home Page</span>
+                  <input type="checkbox" id="slot-toggle-${i}" ${isEnabled ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--primary-color);">
+                </label>
+              </div>
+            </div>
+
+            <!-- Actions Row -->
+            <div style="display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+              <button class="btn-primary" style="flex: 1; font-size: 0.8rem; padding: 8px;" id="slot-save-btn-${i}" onclick="window.saveSingleSlotHandler(${i})">
+                <i class="fas fa-save"></i> Save Slot ${i}
+              </button>
+              ${imageUrl ? `
+                <button class="btn-outline" style="font-size: 0.8rem; padding: 8px 12px; color: var(--danger-color); border-color: var(--danger-color);" onclick="window.clearSlotHandler(${i})">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = html;
+    };
+
+    window.handleSlotFilePreview = (slotNum) => {
+      const fileInput = document.getElementById(`slot-file-${slotNum}`);
+      const previewImg = document.getElementById(`slot-preview-${slotNum}`);
+      const placeholder = document.getElementById(`slot-placeholder-${slotNum}`);
+
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (previewImg) {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+          }
+          if (placeholder) {
+            placeholder.style.display = 'none';
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    window.saveSingleSlotHandler = async (slotNum) => {
+      const btn = document.getElementById(`slot-save-btn-${slotNum}`);
+      if (!btn) return;
+
+      const fileInput = document.getElementById(`slot-file-${slotNum}`);
+      const file = fileInput?.files?.[0] || null;
+      const imageUrl = document.getElementById(`slot-img-url-${slotNum}`)?.value || '';
+      const linkTo = document.getElementById(`slot-link-${slotNum}`)?.value || '';
+      const isEnabled = document.getElementById(`slot-toggle-${slotNum}`)?.checked || false;
+      const position = document.getElementById(`slot-pos-${slotNum}`)?.value || slotNum;
+
+      if (!file && !imageUrl && isEnabled) {
+        showToast(`Slot ${slotNum}-এ কোনো ছবি আপলোড করা হয়নি। ছবি ছাড়া স্লট চালু করা যাবে না।`);
         return;
       }
 
-      container.innerHTML = `
-        <div class="admin-table-container">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Banner Preview</th>
-                <th>Title & Subtitle</th>
-                <th>Target Link</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${filtered.map(b => `
-                <tr>
-                  <td><img src="${b.image}" style="width:100px; height:45px; object-fit:cover; border-radius:6px; border:1px solid #E5E7EB;"></td>
-                  <td>
-                    <strong>${b.title}</strong>
-                    <div style="font-size:0.75rem; color:#6B7280;">${b.subtitle || 'No subtitle'}</div>
-                  </td>
-                  <td><code>${b.linkTo || 'shop.html'}</code></td>
-                  <td>
-                    <span class="admin-badge ${b.isActive !== false ? 'admin-badge-active' : 'admin-badge-inactive'}">
-                      ${b.isActive !== false ? 'Active' : 'Hidden'}
-                    </span>
-                  </td>
-                  <td>
-                    <div class="admin-action-btn-group">
-                      <button onclick="window.toggleBanner('${b.id}', ${b.isActive !== false})" class="btn-outline admin-btn-sm">
-                        ${b.isActive !== false ? '<i class="fas fa-eye-slash"></i> Hide' : '<i class="fas fa-eye"></i> Show'}
-                      </button>
-                      <button onclick="window.editBannerModal('${b.id}')" class="btn-outline admin-btn-sm"><i class="fas fa-edit"></i> Edit</button>
-                      <button onclick="window.deleteBanner('${b.id}')" class="admin-btn-sm" style="background:var(--danger-color); color:#FFF;"><i class="fas fa-trash"></i></button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-    };
+      btn.disabled = true;
+      btn.innerHTML = '<span class="admin-spinner"></span> Saving...';
 
-    window.openBannerModal = () => {
-      document.getElementById('modal-banner-title').innerHTML = '<i class="fas fa-image"></i> Add Banner';
-      document.getElementById('adm-banner-form').reset();
-      document.getElementById('banner-id').value = '';
-      window.openModal('modal-banner');
-    };
+      try {
+        await saveBannerSlot(slotNum, {
+          title: `Slot ${slotNum}`,
+          image: imageUrl,
+          linkTo,
+          isEnabled,
+          position: Number(position)
+        }, file);
 
-    window.editBannerModal = (id) => {
-      const b = adminState.banners.find(x => x.id === id);
-      if (!b) return;
-      document.getElementById('modal-banner-title').innerHTML = '<i class="fas fa-edit"></i> Edit Banner';
-      document.getElementById('banner-id').value = b.id;
-      document.getElementById('banner-title').value = b.title || '';
-      document.getElementById('banner-sub').value = b.subtitle || '';
-      document.getElementById('banner-link').value = b.linkTo || 'shop.html';
-      window.openModal('modal-banner');
-    };
-
-    window.toggleBanner = async (id, currentStatus) => {
-      await toggleBannerVisibility(id, currentStatus);
-      showToast('Banner visibility updated');
-      await loadBannersData();
-    };
-
-    window.deleteBanner = async (id) => {
-      if (confirm('Delete banner?')) {
-        await deleteBannerFromDB(id);
-        showToast('Banner deleted');
+        showToast(`Slot ${slotNum} saved successfully!`);
         await loadBannersData();
+      } catch (err) {
+        console.error(`Save Slot ${slotNum} error:`, err);
+        showToast(`Slot ${slotNum} save failed: ${err.message || 'Error'}`);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i class="fas fa-save"></i> Save Slot ${slotNum}`;
+        }
       }
     };
 
-    document.getElementById('adm-banner-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('banner-id').value;
-      const title = document.getElementById('banner-title').value;
-      const subtitle = document.getElementById('banner-sub').value;
-      const linkTo = document.getElementById('banner-link').value;
-      const file = document.getElementById('banner-file').files[0];
-
-      if (id) {
-        await updateBanner(id, { title, subtitle, linkTo }, file);
-        showToast('Banner updated');
-      } else {
-        await addBanner(title, subtitle, file, linkTo);
-        showToast('Banner added');
+    window.saveAllBannersHandler = async () => {
+      const btn = document.getElementById('save-all-banners-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="admin-spinner"></span> Saving All Banners...';
       }
 
-      window.closeModal('modal-banner');
-      await loadBannersData();
-    });
+      try {
+        const slotsMap = {};
+        for (let i = 1; i <= 8; i++) {
+          const fileInput = document.getElementById(`slot-file-${i}`);
+          const file = fileInput?.files?.[0] || null;
+          const imageUrl = document.getElementById(`slot-img-url-${i}`)?.value || '';
+          const linkTo = document.getElementById(`slot-link-${i}`)?.value || '';
+          const isEnabled = document.getElementById(`slot-toggle-${i}`)?.checked || false;
+          const position = document.getElementById(`slot-pos-${i}`)?.value || i;
+
+          slotsMap[i] = {
+            slotNumber: i,
+            title: `Slot ${i}`,
+            image: imageUrl,
+            linkTo,
+            isEnabled,
+            position: Number(position),
+            file
+          };
+        }
+
+        await saveAllBannerSlots(slotsMap);
+        showToast('All 8 banner slots saved successfully!');
+        await loadBannersData();
+      } catch (err) {
+        console.error('Save all banners error:', err);
+        showToast('Failed to save all banners: ' + (err.message || 'Error'));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-save"></i> Save All Banners';
+        }
+      }
+    };
+
+    window.clearSlotHandler = async (slotNum) => {
+      if (confirm(`Are you sure you want to clear/reset Slot ${slotNum}?`)) {
+        try {
+          await deleteBannerSlot(slotNum);
+          showToast(`Slot ${slotNum} cleared.`);
+          await loadBannersData();
+        } catch (err) {
+          showToast(`Failed to clear slot ${slotNum}`);
+        }
+      }
+    };
   </script>
 </body>
 </html>
