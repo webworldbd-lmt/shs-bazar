@@ -795,47 +795,54 @@ export async function toggleCouponStatus(couponId, currentStatus) {
 }
 
 // -------------------------------------------------------------
-// 6. Banner Management Functions
+// 6. Hero Banner Slots Management Functions
 // -------------------------------------------------------------
-export async function addBanner(title, subtitle, imageFile, linkTo = 'shop.html') {
-  let imageUrl = 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1200&q=80';
+export async function saveBannerSlot(slotNumber, slotData, imageFile = null) {
+  const slotId = `slot_${slotNumber}`;
+  let imageUrl = slotData.image || '';
+
   if (imageFile) {
-    try {
-      const uploadedUrl = await uploadMediaFile(imageFile, 'banners');
-      if (uploadedUrl) imageUrl = uploadedUrl;
-    } catch (e) {
-      console.warn('Banner upload via Cloudinary failed, falling back to Firebase storage:', e);
-      const fileName = `banners/${Date.now()}_${imageFile.name}`;
-      const storageRef = ref(storage, fileName);
-      const snap = await uploadBytesResumable(storageRef, imageFile);
-      imageUrl = await getDownloadURL(snap.ref);
+    const uploadedUrl = await uploadMediaFile(imageFile, 'banners');
+    if (uploadedUrl) {
+      imageUrl = uploadedUrl;
+    } else {
+      throw new Error('Image upload failed');
     }
   }
-  await addDoc(collection(db, 'banners'), {
-    title: title.trim(),
-    subtitle: subtitle ? subtitle.trim() : '',
+
+  const payload = {
+    slotId,
+    slotNumber: Number(slotNumber),
+    title: (slotData.title || `Slot ${slotNumber}`).trim(),
+    subtitle: (slotData.subtitle || '').trim(),
     image: imageUrl,
-    linkTo: linkTo ? linkTo.trim() : 'shop.html',
-    isActive: true,
-    createdAt: new Date()
-  });
+    linkTo: (slotData.linkTo || slotData.linkUrl || '').trim(),
+    isEnabled: Boolean(slotData.isEnabled),
+    position: Number(slotData.position !== undefined ? slotData.position : slotNumber),
+    updatedAt: new Date()
+  };
+
+  await setDoc(doc(db, 'banners', slotId), payload, { merge: true });
+  try {
+    const { clearBannerCache } = await import('./products.js');
+    clearBannerCache();
+  } catch (e) {}
+
+  return { id: slotId, ...payload };
 }
 
-export async function updateBanner(bannerId, data, newImageFile = null) {
-  let updatePayload = { ...data, updatedAt: new Date() };
-  if (newImageFile) {
-    try {
-      const uploadedUrl = await uploadMediaFile(newImageFile, 'banners');
-      if (uploadedUrl) updatePayload.image = uploadedUrl;
-    } catch (e) {
-      console.warn('Banner upload via Cloudinary failed, falling back to Firebase storage:', e);
-      const fileName = `banners/${Date.now()}_${newImageFile.name}`;
-      const storageRef = ref(storage, fileName);
-      const snap = await uploadBytesResumable(storageRef, newImageFile);
-      updatePayload.image = await getDownloadURL(snap.ref);
-    }
+export async function saveAllBannerSlots(slotsMap) {
+  // slotsMap: { 1: { title, image, linkTo, isEnabled, position, file }, ... }
+  const savePromises = [];
+  for (let slotNum = 1; slotNum <= 8; slotNum++) {
+    const slotInfo = slotsMap[slotNum] || {};
+    savePromises.push(saveBannerSlot(slotNum, slotInfo, slotInfo.file || null));
   }
-  await updateDoc(doc(db, 'banners', bannerId), updatePayload);
+  await Promise.all(savePromises);
+  try {
+    const { clearBannerCache } = await import('./products.js');
+    clearBannerCache();
+  } catch (e) {}
 }
 
 export async function fetchBannersFromDB() {
@@ -850,13 +857,34 @@ export async function fetchBannersFromDB() {
   }
 }
 
-export async function deleteBannerFromDB(bannerId) {
-  await deleteDoc(doc(db, 'banners', bannerId));
+export async function deleteBannerSlot(slotNumber) {
+  const slotId = `slot_${slotNumber}`;
+  await setDoc(doc(db, 'banners', slotId), {
+    slotId,
+    slotNumber: Number(slotNumber),
+    title: `Slot ${slotNumber}`,
+    subtitle: '',
+    image: '',
+    linkTo: '',
+    isEnabled: false,
+    position: Number(slotNumber),
+    updatedAt: new Date()
+  });
+  try {
+    const { clearBannerCache } = await import('./products.js');
+    clearBannerCache();
+  } catch (e) {}
 }
 
 export async function toggleBannerVisibility(bannerId, currentStatus) {
+  const isEnabled = !currentStatus;
   await updateDoc(doc(db, 'banners', bannerId), {
-    isActive: !currentStatus,
+    isEnabled: isEnabled,
+    isActive: isEnabled,
     updatedAt: new Date()
   });
+  try {
+    const { clearBannerCache } = await import('./products.js');
+    clearBannerCache();
+  } catch (e) {}
 }

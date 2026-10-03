@@ -310,41 +310,33 @@ export function getProductShareUrl(identifier) {
   return `${window.location.origin}/p/${encodeURIComponent(identifier)}`;
 }
 
-export const DEFAULT_BANNERS = [
-  {
-    id: 'banner_1',
-    image: 'assets/banners/hero-banner-1.jpg',
-    fallbackImage: 'assets/banners/hero-banner-1.jpg',
-    linkTo: 'offers.html'
-  },
-  {
-    id: 'banner_2',
-    image: 'assets/banners/hero-banner-2.jpg',
-    fallbackImage: 'assets/banners/hero-banner-2.jpg',
-    linkTo: 'shop.html'
-  },
-  {
-    id: 'banner_3',
-    image: 'assets/banners/hero-banner-3.jpg',
-    fallbackImage: 'assets/banners/hero-banner-3.jpg',
-    linkTo: 'shop.html'
-  }
-];
+export const DEFAULT_BANNERS = [];
 
 let cachedBanners = null;
 
-export async function fetchBanners() {
-  if (cachedBanners && cachedBanners.length > 0) {
+export function clearBannerCache() {
+  cachedBanners = null;
+  try {
+    sessionStorage.removeItem('mk_cached_banners');
+  } catch (e) {}
+}
+
+export async function fetchBanners(forceRefresh = false) {
+  if (!forceRefresh && cachedBanners && Array.isArray(cachedBanners)) {
     return cachedBanners;
   }
-  try {
-    const sessionData = sessionStorage.getItem('mk_cached_banners');
-    if (sessionData) {
-      cachedBanners = JSON.parse(sessionData);
-      return cachedBanners;
+  if (!forceRefresh) {
+    try {
+      const sessionData = sessionStorage.getItem('mk_cached_banners');
+      if (sessionData) {
+        cachedBanners = JSON.parse(sessionData);
+        if (Array.isArray(cachedBanners)) {
+          return cachedBanners;
+        }
+      }
+    } catch (e) {
+      console.warn('sessionStorage banners read error:', e);
     }
-  } catch (e) {
-    console.warn('sessionStorage banners read error:', e);
   }
 
   try {
@@ -353,23 +345,37 @@ export async function fetchBanners() {
       const list = [];
       snap.forEach(docSnap => {
         const data = docSnap.data();
-        if (data.isActive !== false) {
-          list.push({ id: docSnap.id, ...data });
+        const isEnabled = (data.isEnabled !== undefined) ? data.isEnabled : (data.isActive !== false);
+        if (isEnabled && data.image) {
+          list.push({
+            id: docSnap.id,
+            slotId: data.slotId || docSnap.id,
+            title: data.title || '',
+            subtitle: data.subtitle || '',
+            image: data.image,
+            linkTo: data.linkTo || data.linkUrl || '',
+            position: Number(data.position !== undefined ? data.position : 1),
+            isEnabled: true,
+            ...data
+          });
         }
       });
-      const result = list.length > 0 ? list : DEFAULT_BANNERS;
-      cachedBanners = result;
+
+      // Sort by position / slot order
+      list.sort((a, b) => (Number(a.position || 0) - Number(b.position || 0)));
+
+      cachedBanners = list;
       try {
-        sessionStorage.setItem('mk_cached_banners', JSON.stringify(result));
+        sessionStorage.setItem('mk_cached_banners', JSON.stringify(list));
       } catch (e) {}
-      return result;
+      return list;
     })();
 
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve(DEFAULT_BANNERS), 1200));
+    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve([]), 3000));
     return await Promise.race([fetchPromise, timeoutPromise]);
   } catch (err) {
-    console.warn('Error fetching banners from Firestore, using default banners:', err);
-    return DEFAULT_BANNERS;
+    console.warn('Error fetching banners from Firestore:', err);
+    return [];
   }
 }
 
