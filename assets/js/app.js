@@ -1,7 +1,7 @@
 // Main Application Script (UI Wiring, Search, Cart State, Mobile Nav, PWA Service Worker)
 import { fetchPublishedProducts, subscribeToPublishedProducts, fetchBanners, renderProductCard, renderSkeletonCards, renderErrorState, renderEmptyState, fetchActiveCategories, subscribeToActiveCategories, DEFAULT_BANNERS, getProductShareUrl, FALLBACK_IMAGE } from './products.js';
 import { toggleWishlist, currentUser, logoutUser, onAuthStateUpdate } from './auth.js';
-import { fetchAdminSettings, isSuperAdminUser } from './admin.js';
+import { fetchAdminSettings, isSuperAdminUser, SOCIAL_PLATFORM_ICONS } from './admin.js';
 import { getValidCategoryImageUrl } from './category-icons.js';
 import { TRANSLATIONS } from './translations.js';
 
@@ -808,7 +808,25 @@ export async function applyGlobalStoreSettings() {
       }
     }
 
-    // 3. Social & Contact Links
+    // 3. Social & Contact Links (Dynamic rendering for footer and links)
+    const socialLinks = settings.socialLinks || [];
+    const footerContainer = document.getElementById('footer-social-icons-container');
+    if (footerContainer && Array.isArray(socialLinks) && socialLinks.length > 0) {
+      footerContainer.innerHTML = socialLinks.map(item => {
+        const platformKey = item.platform || 'other';
+        const meta = SOCIAL_PLATFORM_ICONS[platformKey] || SOCIAL_PLATFORM_ICONS.other;
+        let url = (item.url || '').trim();
+        if (platformKey === 'whatsapp' && url && !url.startsWith('http')) {
+          const cleanWa = url.replace(/[^0-9]/g, '');
+          const fullWa = cleanWa.startsWith('88') ? cleanWa : `88${cleanWa}`;
+          url = `https://wa.me/${fullWa}`;
+        }
+        if (!url) return '';
+        const title = item.customName || meta.name;
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: ${meta.color};" title="${title}"><i class="${meta.iconClass}"></i></a>`;
+      }).filter(Boolean).join('');
+    }
+
     if (settings.social) {
       const { facebookUrl, whatsappNumber, telegramUrl } = settings.social;
 

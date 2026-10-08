@@ -139,45 +139,23 @@
       <div class="glass-card checkout-section-card">
         <h3 class="step-card-title"><i class="fas fa-wallet"></i> <span data-i18n="paymentMethodSection">4. Payment Method</span></h3>
 
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <label class="payment-method-option">
-            <input type="radio" name="payment_method" value="cod" checked>
-            <div>
-              <strong data-i18n="codLabel">Cash on Delivery</strong>
-              <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="codDesc">Pay cash upon delivery</div>
-            </div>
-          </label>
-
-          <label class="payment-method-option">
-            <input type="radio" name="payment_method" value="bkash">
-            <div style="flex: 1;">
-              <strong style="color: #E2136E;"><i class="fas fa-mobile-alt"></i> <span data-i18n="bkashLabel">bKash Payment</span></strong>
-              <div style="font-size: 0.75rem; color: var(--text-muted);" data-i18n="bkashDesc">Send Money & enter Transaction ID</div>
-            </div>
-            <button type="button" id="open-bkash-modal-btn" style="display: none; background: #E2136E; color: #FFF; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: none;">Pay with bKash</button>
-          </label>
-
-          <div id="bkash-status-card" style="display: none; background: #FDF2F8; border: 1px solid #FBCFE8; padding: 12px; border-radius: 8px; margin-top: 2px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="font-size: 0.8rem; font-weight: 700; color: #BE185D;" id="bkash-status-text">bKash Payment Selected</div>
-                <div style="font-size: 0.75rem; color: #9D174D; margin-top: 2px;" id="bkash-trxid-confirmed">TrxID: <span id="confirmed-trxid-val" style="font-weight: 800; font-family: monospace;">Not Verified Yet</span></div>
-              </div>
-              <button type="button" id="reopen-bkash-modal-btn" style="background: #E2136E; color: #FFF; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: none;">
-                <i class="fas fa-edit"></i> <span id="bkash-btn-label">Enter TrxID</span>
-              </button>
-            </div>
-            <input type="hidden" id="bkash-txnid">
-          </div>
-
-          <label class="payment-method-option disabled">
-            <input type="radio" name="payment_method" value="nagad" disabled>
-            <div>
-              <strong><span data-i18n="nagadLabel">Nagad Payment</span> <span style="font-size: 0.7rem; background: var(--warning-color); color: #FFF; padding: 1px 4px; border-radius: 4px;" data-i18n="comingSoon">Coming Soon</span></strong>
-              <div style="font-size: 0.75rem; color: var(--text-muted);">Disabled in v1</div>
-            </div>
-          </label>
+        <div id="dynamic-checkout-payment-options" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- Dynamically populated from settings/paymentMethods -->
         </div>
+
+        <div id="bkash-status-card" style="display: none; background: #FDF2F8; border: 1px solid #FBCFE8; padding: 12px; border-radius: 8px; margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 0.8rem; font-weight: 700; color: #BE185D;" id="bkash-status-text">Payment Details / TrxID Selected</div>
+              <div style="font-size: 0.75rem; color: #9D174D; margin-top: 2px;" id="bkash-trxid-confirmed">TrxID: <span id="confirmed-trxid-val" style="font-weight: 800; font-family: monospace;">Not Verified Yet</span></div>
+            </div>
+            <button type="button" id="reopen-bkash-modal-btn" style="background: #E2136E; color: #FFF; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: none;">
+              <i class="fas fa-edit"></i> <span id="bkash-btn-label">Enter TrxID</span>
+            </button>
+          </div>
+          <input type="hidden" id="bkash-txnid">
+        </div>
+
         <span class="field-error" id="err-payment-method" style="margin-top: 8px; display: block;"></span>
       </div>
 
@@ -290,7 +268,7 @@
     import { loadDeliverySettings, calculateDeliveryCharge, placeOrder } from './assets/js/cart-checkout.js';
     import { getCart, showToast } from './assets/js/app.js';
     import { currentUser, userProfile, onAuthStateUpdate } from './assets/js/auth.js';
-    import { fetchCoupons } from './assets/js/admin.js';
+    import { fetchCoupons, fetchAdminSettings, PAYMENT_METHOD_ICONS } from './assets/js/admin.js';
 
     let appliedDiscount = 0;
 
@@ -377,11 +355,11 @@
       if (!selectedPayment) {
         setFieldError('payment-method', 'পেমেন্ট পদ্ধতি নির্বাচন করুন।');
         isValid = false;
-      } else if (selectedPayment === 'bkash') {
+      } else if (['bkash', 'nagad', 'rocket', 'upay'].includes(selectedPayment)) {
         const trxVal = document.getElementById('bkash-txnid').value.trim();
         if (!trxVal) {
-          setFieldError('payment-method', 'bKash ট্রানজেকশন আইডেন্টিফায়ার (TrxID) নিশ্চিত করুন।');
-          showToast('Please enter your bKash Transaction ID');
+          setFieldError('payment-method', 'ট্রানজেকশন আইডেন্টিফায়ার (TrxID) নিশ্চিত করুন।');
+          showToast('Please enter your Transaction ID');
           openBkashModal();
           isValid = false;
         }
@@ -392,6 +370,46 @@
 
     async function initCheckoutPage() {
       const deliverySettings = await loadDeliverySettings();
+      const adminSettings = await fetchAdminSettings();
+      const paymentMethodsList = (adminSettings.paymentMethods || []).filter(m => m.enabled !== false);
+
+      const dynamicOptionsContainer = document.getElementById('dynamic-checkout-payment-options');
+      if (dynamicOptionsContainer) {
+        if (paymentMethodsList.length === 0) {
+          dynamicOptionsContainer.innerHTML = `
+            <label class="payment-method-option">
+              <input type="radio" name="payment_method" value="cod" checked>
+              <div>
+                <strong>Cash on Delivery</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Pay cash upon delivery</div>
+              </div>
+            </label>
+          `;
+        } else {
+          dynamicOptionsContainer.innerHTML = paymentMethodsList.map((item, idx) => {
+            const mKey = item.method || 'other';
+            const meta = PAYMENT_METHOD_ICONS[mKey] || PAYMENT_METHOD_ICONS.other;
+            const isChecked = idx === 0;
+            const isMfs = ['bkash', 'nagad', 'rocket', 'upay'].includes(mKey);
+
+            return `
+              <label class="payment-method-option" style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: #FFF;">
+                <input type="radio" name="payment_method" value="${mKey}" ${isChecked ? 'checked' : ''} data-number="${item.number || ''}">
+                <div style="flex: 1;">
+                  <strong style="color: ${meta.color}; display: flex; align-items: center; gap: 6px;">
+                    <i class="${meta.iconClass}"></i> ${item.customName || meta.name}
+                  </strong>
+                  <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                    ${item.number ? item.number : (mKey === 'cod' ? 'Pay cash upon delivery' : 'Account/Merchant Payment')}
+                  </div>
+                </div>
+                ${isMfs ? `<button type="button" class="mfs-pay-modal-btn" data-method="${mKey}" data-number="${item.number || ''}" style="background: ${meta.color}; color: #FFF; font-size: 0.75rem; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer;">Pay via ${meta.name}</button>` : ''}
+              </label>
+            `;
+          }).join('');
+        }
+      }
+
       let cart = getCart();
 
       // Support "Buy Now" flow via URL query params
@@ -630,12 +648,32 @@
       paymentRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
           clearFieldError('payment-method');
-          if (e.target.value === 'bkash') {
+          const val = e.target.value;
+          const num = e.target.getAttribute('data-number') || '01342697743';
+          const merchantNumEl = document.getElementById('bkash-merchant-num');
+          if (merchantNumEl) merchantNumEl.textContent = num;
+
+          if (['bkash', 'nagad', 'rocket', 'upay'].includes(val)) {
             if (bkashStatusCard) bkashStatusCard.style.display = 'block';
             openBkashModal();
           } else {
             if (bkashStatusCard) bkashStatusCard.style.display = 'none';
           }
+        });
+      });
+
+      document.querySelectorAll('.mfs-pay-modal-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const num = btn.getAttribute('data-number') || '01342697743';
+          const merchantNumEl = document.getElementById('bkash-merchant-num');
+          if (merchantNumEl) merchantNumEl.textContent = num;
+
+          const radio = btn.closest('label')?.querySelector('input[type="radio"]');
+          if (radio) radio.checked = true;
+
+          if (bkashStatusCard) bkashStatusCard.style.display = 'block';
+          openBkashModal();
         });
       });
 

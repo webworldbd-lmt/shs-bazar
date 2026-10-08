@@ -28,6 +28,32 @@ export function isSuperAdminUser(user, profile) {
 }
 
 // -------------------------------------------------------------
+// Brand Icon & Platform Mapping Objects
+// -------------------------------------------------------------
+export const SOCIAL_PLATFORM_ICONS = {
+  tiktok: { name: 'TikTok', iconClass: 'fab fa-tiktok', color: '#000000', bg: '#F1F5F9' },
+  instagram: { name: 'Instagram', iconClass: 'fab fa-instagram', color: '#E1306C', bg: '#FDF2F8' },
+  youtube: { name: 'YouTube', iconClass: 'fab fa-youtube', color: '#FF0000', bg: '#FEF2F2' },
+  twitter: { name: 'Twitter/X', iconClass: 'fab fa-x-twitter', color: '#1DA1F2', bg: '#F0F9FF' },
+  linkedin: { name: 'LinkedIn', iconClass: 'fab fa-linkedin', color: '#0A66C2', bg: '#EFF6FF' },
+  pinterest: { name: 'Pinterest', iconClass: 'fab fa-pinterest', color: '#E60023', bg: '#FEF2F2' },
+  facebook: { name: 'Facebook', iconClass: 'fab fa-facebook', color: '#1877F2', bg: '#EFF6FF' },
+  whatsapp: { name: 'WhatsApp', iconClass: 'fab fa-whatsapp', color: '#25D366', bg: '#F0FDF4' },
+  telegram: { name: 'Telegram', iconClass: 'fab fa-telegram', color: '#29B6F6', bg: '#F0F9FF' },
+  other: { name: 'Other', iconClass: 'fas fa-globe', color: '#0A4A39', bg: '#E6F4E6' }
+};
+
+export const PAYMENT_METHOD_ICONS = {
+  bkash: { name: 'bKash', iconClass: 'fas fa-mobile-alt', color: '#E2136E', badgeBg: '#E2136E', badgeColor: '#FFFFFF' },
+  nagad: { name: 'Nagad', iconClass: 'fas fa-wallet', color: '#F7921E', badgeBg: '#F7921E', badgeColor: '#FFFFFF' },
+  rocket: { name: 'Rocket', iconClass: 'fas fa-rocket', color: '#8C3494', badgeBg: '#8C3494', badgeColor: '#FFFFFF' },
+  upay: { name: 'Upay', iconClass: 'fas fa-mobile', color: '#005A9C', badgeBg: '#005A9C', badgeColor: '#FFFFFF' },
+  bank: { name: 'Bank Transfer', iconClass: 'fas fa-university', color: '#2563EB', badgeBg: '#2563EB', badgeColor: '#FFFFFF' },
+  cod: { name: 'Cash on Delivery', iconClass: 'fas fa-money-bill-wave', color: '#16A34A', badgeBg: '#16A34A', badgeColor: '#FFFFFF' },
+  other: { name: 'Other', iconClass: 'fas fa-credit-card', color: '#0A4A39', badgeBg: '#0A4A39', badgeColor: '#FFFFFF' }
+};
+
+// -------------------------------------------------------------
 // 1. Settings CRUD Functions
 // -------------------------------------------------------------
 let cachedAdminSettings = null;
@@ -90,7 +116,9 @@ export async function fetchAdminSettings(forceRefresh = false) {
       getDoc(doc(db, 'settings', 'policies')),
       getDoc(doc(db, 'settings', 'maintenance')),
       getDoc(doc(db, 'settings', 'seo')),
-      getDoc(doc(db, 'settings', 'analytics'))
+      getDoc(doc(db, 'settings', 'analytics')),
+      getDoc(doc(db, 'settings', 'socialLinks')),
+      getDoc(doc(db, 'settings', 'paymentMethods'))
     ]);
 
     const timeoutPromise = new Promise((_, reject) => {
@@ -107,7 +135,9 @@ export async function fetchAdminSettings(forceRefresh = false) {
       policiesSnap,
       maintenanceSnap,
       seoSnap,
-      analyticsSnap
+      analyticsSnap,
+      socialLinksSnap,
+      paymentMethodsSnap
     ] = await Promise.race([fetchPromise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
 
     const generalData = generalSnap.exists() ? generalSnap.data() : {};
@@ -119,12 +149,42 @@ export async function fetchAdminSettings(forceRefresh = false) {
     const seoData = seoSnap.exists() ? seoSnap.data() : {};
     const analyticsData = analyticsSnap.exists() ? analyticsSnap.data() : {};
 
+    // Handle socialLinks array logic with fallbacks
+    let socialLinksList = [];
+    if (socialLinksSnap && socialLinksSnap.exists()) {
+      const data = socialLinksSnap.data();
+      socialLinksList = Array.isArray(data) ? data : (data.items || data.links || data.list || []);
+    }
+    if (!socialLinksList || socialLinksList.length === 0) {
+      socialLinksList = [
+        { platform: 'facebook', customName: 'Facebook', url: socialData.facebookUrl || defaultSettings.social.facebookUrl },
+        { platform: 'whatsapp', customName: 'WhatsApp', url: socialData.whatsappNumber || defaultSettings.social.whatsappNumber },
+        { platform: 'telegram', customName: 'Telegram', url: socialData.telegramUrl || defaultSettings.social.telegramUrl }
+      ];
+    }
+
+    // Handle paymentMethods array logic with fallbacks
+    let paymentMethodsList = [];
+    if (paymentMethodsSnap && paymentMethodsSnap.exists()) {
+      const data = paymentMethodsSnap.data();
+      paymentMethodsList = Array.isArray(data) ? data : (data.items || data.methods || data.list || []);
+    }
+    if (!paymentMethodsList || paymentMethodsList.length === 0) {
+      const paymentData = paymentSnap.exists() ? paymentSnap.data() : {};
+      paymentMethodsList = [
+        { id: 'cod_1', method: 'cod', customName: 'Cash on Delivery', number: 'Pay cash upon delivery', enabled: paymentData.codEnabled !== false },
+        { id: 'bkash_1', method: 'bkash', customName: 'bKash', number: paymentData.bKashNumber || defaultSettings.payment.bKashNumber, enabled: true }
+      ];
+    }
+
     const settingsResult = {
       delivery: deliverySnap.exists() ? deliverySnap.data() : defaultSettings.delivery,
       payment: paymentSnap.exists() ? paymentSnap.data() : defaultSettings.payment,
       general: { ...defaultSettings.general, ...generalData },
       branding: { ...defaultSettings.branding, ...brandingData },
       social: { ...defaultSettings.social, ...socialData },
+      socialLinks: socialLinksList,
+      paymentMethods: paymentMethodsList,
       order: { ...defaultSettings.order, ...orderData },
       policies: { ...defaultSettings.policies, ...policiesData },
       maintenance: { ...defaultSettings.maintenance, ...maintenanceData },
@@ -163,10 +223,42 @@ export async function saveAdminBrandingSettings(data) {
 }
 
 export async function saveAdminSocialSettings(data) {
-  await setDoc(doc(db, 'settings', 'social'), {
-    ...data,
+  // Save array as document in settings/socialLinks
+  const items = Array.isArray(data) ? data : (data.items || data.links || []);
+  await setDoc(doc(db, 'settings', 'socialLinks'), {
+    items,
+    updatedAt: new Date()
+  });
+
+  // Also merge legacy fields if available for backward compatibility
+  if (data.facebookUrl || data.whatsappNumber || data.telegramUrl) {
+    await setDoc(doc(db, 'settings', 'social'), {
+      facebookUrl: data.facebookUrl || '',
+      whatsappNumber: data.whatsappNumber || '',
+      telegramUrl: data.telegramUrl || '',
+      updatedAt: new Date()
+    }, { merge: true });
+  }
+
+  clearAdminSettingsCache();
+}
+
+export async function saveAdminPaymentSettingsList(data) {
+  const items = Array.isArray(data) ? data : (data.items || data.methods || []);
+  await setDoc(doc(db, 'settings', 'paymentMethods'), {
+    items,
+    updatedAt: new Date()
+  });
+
+  // Also sync legacy settings/payment if bkash or cod exists in list
+  const bkashItem = items.find(i => i.method === 'bkash');
+  const codItem = items.find(i => i.method === 'cod');
+  await setDoc(doc(db, 'settings', 'payment'), {
+    bKashNumber: bkashItem ? bkashItem.number : '',
+    codEnabled: codItem ? Boolean(codItem.enabled) : true,
     updatedAt: new Date()
   }, { merge: true });
+
   clearAdminSettingsCache();
 }
 
