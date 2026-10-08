@@ -512,18 +512,18 @@
       </div>
 
       <div class="admin-section-card">
-        <div class="admin-section-header">
-          <h3 class="admin-section-title"><i class="fas fa-money-bill-wave"></i> Payment Settings</h3>
+        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <h3 class="admin-section-title"><i class="fas fa-money-bill-wave"></i> Dynamic Payment Methods</h3>
+          <button type="button" class="btn-accent" style="background: var(--accent-color, #F5820A); color: #FFF; font-size: 0.82rem; padding: 6px 14px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="window.addPaymentMethodRow()">
+            <i class="fas fa-plus"></i> Add Payment Method
+          </button>
         </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
+          Admin Panel থেকে ইচ্ছামতো যেকোনো সংখ্যক পেমেন্ট মেথড (bKash, Nagad, Rocket, Upay, Bank Transfer, Cash on Delivery ইত্যাদি) Add/Edit/Enable/Delete পরিচালনা করুন।
+        </p>
         <form id="adm-payment-form">
-          <div class="form-group">
-            <label class="form-label">bKash Merchant / Personal Mobile Number *</label>
-            <input type="text" id="bkash-num-setting" class="form-control" value="01342697743" required>
-          </div>
-          <div class="form-group">
-            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer;">
-              <input type="checkbox" id="cod-toggle-setting" checked> Enable Cash on Delivery (COD)
-            </label>
+          <div id="payment-methods-dynamic-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+            <!-- Rendered dynamically -->
           </div>
           <button type="submit" class="btn-primary" style="border-radius: 10px; padding: 10px 20px;">Save Payment Settings</button>
         </form>
@@ -578,24 +578,18 @@
 
       <!-- 2. Social Media & Contact Links -->
       <div class="admin-section-card">
-        <div class="admin-section-header">
-          <h3 class="admin-section-title"><i class="fas fa-share-alt"></i> Social Media & Contact Links</h3>
+        <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <h3 class="admin-section-title"><i class="fas fa-share-alt"></i> Dynamic Social Media & Contact Links</h3>
+          <button type="button" class="btn-accent" style="background: var(--accent-color, #F5820A); color: #FFF; font-size: 0.82rem; padding: 6px 14px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" onclick="window.addSocialLinkRow()">
+            <i class="fas fa-plus"></i> Add Social Link
+          </button>
         </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px;">
+          আপনার সোশ্যাল মিডিয়া ও কনট্যাক্ট লিংক যোগ করুন। প্ল্যাটফর্ম সিলেক্ট করলে স্বয়ংক্রিয়ভাবে লোগো প্রিভিউ আসবে।
+        </p>
         <form id="adm-social-form">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
-            <div class="form-group">
-              <label class="form-label"><i class="fab fa-facebook" style="color:#1877F2;"></i> Facebook Page URL</label>
-              <input type="text" id="social-fb-url" class="form-control" value="https://facebook.com/marketkoroofficial">
-            </div>
-            <div class="form-group">
-              <label class="form-label"><i class="fab fa-whatsapp" style="color:#25D366;"></i> WhatsApp Contact Number</label>
-              <input type="text" id="social-wa-num" class="form-control" value="01342697743" placeholder="e.g. 01342697743">
-              <small style="color: var(--text-muted); font-size: 0.75rem;">যোগাযোগের জন্য আলাদা হোয়াটসঅ্যাপ নম্বর</small>
-            </div>
-            <div class="form-group">
-              <label class="form-label"><i class="fab fa-telegram" style="color:#29B6F6;"></i> Telegram Channel URL</label>
-              <input type="text" id="social-tg-url" class="form-control" value="https://t.me/marketkoroofficial">
-            </div>
+          <div id="social-links-dynamic-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+            <!-- Rendered dynamically -->
           </div>
           <button type="submit" class="btn-primary" style="border-radius: 10px; padding: 10px 20px;">Save Social & Contact Links</button>
         </form>
@@ -1093,6 +1087,7 @@
       fetchAdminSettings,
       saveAdminDeliverySettings,
       saveAdminPaymentSettings,
+      saveAdminPaymentSettingsList,
       saveAdminGeneralSettings,
       saveAdminBrandingSettings,
       saveAdminSocialSettings,
@@ -1101,6 +1096,8 @@
       saveAdminMaintenanceSettings,
       saveAdminSeoSettings,
       saveAdminAnalyticsSettings,
+      SOCIAL_PLATFORM_ICONS,
+      PAYMENT_METHOD_ICONS,
       generateCategorySlug,
       createCategory,
       updateCategory,
@@ -2763,12 +2760,8 @@
           const elOutside = document.getElementById('charge-outside');
           if (elOutside) elOutside.value = adminState.settings.delivery.outsideKushtia ?? 160;
         }
-        if (adminState.settings.payment) {
-          const elBkash = document.getElementById('bkash-num-setting');
-          if (elBkash) elBkash.value = adminState.settings.payment.bKashNumber || '01342697743';
-          const elCod = document.getElementById('cod-toggle-setting');
-          if (elCod) elCod.checked = adminState.settings.payment.codEnabled !== false;
-        }
+        renderDynamicPaymentMethods(adminState.settings.paymentMethods || []);
+        renderDynamicSocialLinks(adminState.settings.socialLinks || []);
         if (adminState.settings.general) {
           const elName = document.getElementById('gen-site-name');
           if (elName) elName.value = adminState.settings.general.siteName || 'Market Koro';
@@ -2842,13 +2835,218 @@
       showToast('Delivery Settings Saved');
     });
 
+    // Dynamic Social Links UI Logic
+    window.renderDynamicSocialLinks = (linksList) => {
+      const container = document.getElementById('social-links-dynamic-container');
+      if (!container) return;
+
+      if (!linksList || linksList.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 12px; font-size: 0.85rem;">No social links added yet. Click "+ Add Social Link" above to add one.</div>`;
+        return;
+      }
+
+      container.innerHTML = linksList.map((item, idx) => {
+        const platformKey = item.platform || 'other';
+        const meta = SOCIAL_PLATFORM_ICONS[platformKey] || SOCIAL_PLATFORM_ICONS.other;
+
+        const optionsHtml = Object.keys(SOCIAL_PLATFORM_ICONS).map(key => {
+          const info = SOCIAL_PLATFORM_ICONS[key];
+          return `<option value="${key}" ${key === platformKey ? 'selected' : ''}>${info.name}</option>`;
+        }).join('');
+
+        return `
+          <div class="social-link-row-card" style="background: var(--bg-color, #F8FAFC); border: 1px solid var(--border-color, #E2E8F0); border-radius: 12px; padding: 12px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+            <div style="width: 38px; height: 38px; border-radius: 50%; background: ${meta.bg}; color: ${meta.color}; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;" id="social-icon-preview-${idx}">
+              <i class="${meta.iconClass}"></i>
+            </div>
+
+            <div style="flex: 1; min-width: 140px;">
+              <label class="form-label" style="font-size: 0.72rem; margin-bottom: 2px;">Platform Name</label>
+              <select class="form-control social-platform-select" data-index="${idx}" onchange="window.handleSocialPlatformChange(${idx}, this.value)" style="font-size: 0.82rem; font-weight: 700; padding: 6px 10px;">
+                ${optionsHtml}
+              </select>
+            </div>
+
+            <div style="flex: 2; min-width: 200px;">
+              <label class="form-label" style="font-size: 0.72rem; margin-bottom: 2px;">Link URL / Contact Info</label>
+              <input type="text" class="form-control social-url-input" data-index="${idx}" value="${item.url || ''}" placeholder="e.g. https://tiktok.com/@marketkoroofficial" style="font-size: 0.82rem; padding: 6px 10px;">
+            </div>
+
+            ${platformKey === 'other' ? `
+            <div style="flex: 1; min-width: 120px;">
+              <label class="form-label" style="font-size: 0.72rem; margin-bottom: 2px;">Custom Name</label>
+              <input type="text" class="form-control social-custom-name" data-index="${idx}" value="${item.customName || ''}" placeholder="Platform Name" style="font-size: 0.82rem; padding: 6px 10px;">
+            </div>
+            ` : ''}
+
+            <button type="button" class="btn-outline" onclick="window.removeSocialLinkRow(${idx})" style="color: var(--danger-color, #EF4444); border-color: #FCA5A5; background: #FEF2F2; padding: 8px 12px; border-radius: 8px; cursor: pointer;" title="Delete Link">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.addSocialLinkRow = () => {
+      const links = collectSocialLinksFromUI();
+      links.push({ platform: 'tiktok', customName: 'TikTok', url: '' });
+      renderDynamicSocialLinks(links);
+    };
+
+    window.removeSocialLinkRow = (index) => {
+      const links = collectSocialLinksFromUI();
+      links.splice(index, 1);
+      renderDynamicSocialLinks(links);
+    };
+
+    window.handleSocialPlatformChange = (index, val) => {
+      const iconBox = document.getElementById(`social-icon-preview-${index}`);
+      const meta = SOCIAL_PLATFORM_ICONS[val] || SOCIAL_PLATFORM_ICONS.other;
+      if (iconBox) {
+        iconBox.style.background = meta.bg;
+        iconBox.style.color = meta.color;
+        iconBox.innerHTML = `<i class="${meta.iconClass}"></i>`;
+      }
+      const links = collectSocialLinksFromUI();
+      if (links[index]) links[index].platform = val;
+      renderDynamicSocialLinks(links);
+    };
+
+    function collectSocialLinksFromUI() {
+      const rows = document.querySelectorAll('#social-links-dynamic-container .social-link-row-card');
+      const list = [];
+      rows.forEach((row, idx) => {
+        const platformSelect = row.querySelector('.social-platform-select');
+        const urlInput = row.querySelector('.social-url-input');
+        const customNameInput = row.querySelector('.social-custom-name');
+
+        const platform = platformSelect ? platformSelect.value : 'other';
+        const url = urlInput ? urlInput.value.trim() : '';
+        const customName = customNameInput ? customNameInput.value.trim() : (SOCIAL_PLATFORM_ICONS[platform]?.name || 'Social Link');
+
+        list.push({ platform, url, customName });
+      });
+      return list;
+    }
+
+    // Dynamic Payment Methods UI Logic
+    window.renderDynamicPaymentMethods = (methodsList) => {
+      const container = document.getElementById('payment-methods-dynamic-container');
+      if (!container) return;
+
+      if (!methodsList || methodsList.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color: var(--text-muted); padding: 12px; font-size: 0.85rem;">No payment methods added yet. Click "+ Add Payment Method" above to add one.</div>`;
+        return;
+      }
+
+      container.innerHTML = methodsList.map((item, idx) => {
+        const methodKey = item.method || 'other';
+        const meta = PAYMENT_METHOD_ICONS[methodKey] || PAYMENT_METHOD_ICONS.other;
+
+        const optionsHtml = Object.keys(PAYMENT_METHOD_ICONS).map(key => {
+          const info = PAYMENT_METHOD_ICONS[key];
+          return `<option value="${key}" ${key === methodKey ? 'selected' : ''}>${info.name}</option>`;
+        }).join('');
+
+        const isEnabled = item.enabled !== false;
+
+        return `
+          <div class="payment-method-row-card" style="background: var(--bg-color, #F8FAFC); border: 1px solid var(--border-color, #E2E8F0); border-radius: 12px; padding: 12px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.05));">
+            <!-- Brand Badge Preview -->
+            <div style="background: ${meta.badgeBg}; color: ${meta.badgeColor}; font-weight: 800; font-size: 0.82rem; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; min-width: 100px; justify-content: center;" id="payment-badge-preview-${idx}">
+              <i class="${meta.iconClass}"></i> <span>${meta.name}</span>
+            </div>
+
+            <div style="flex: 1; min-width: 130px;">
+              <label class="form-label" style="font-size: 0.72rem; margin-bottom: 2px;">Method Name</label>
+              <select class="form-control payment-method-select" data-index="${idx}" onchange="window.handlePaymentMethodChange(${idx}, this.value)" style="font-size: 0.82rem; font-weight: 700; padding: 6px 10px;">
+                ${optionsHtml}
+              </select>
+            </div>
+
+            <div style="flex: 2; min-width: 180px;">
+              <label class="form-label" style="font-size: 0.72rem; margin-bottom: 2px;">Merchant/Personal Number or Account Details</label>
+              <input type="text" class="form-control payment-number-input" data-index="${idx}" value="${item.number || ''}" placeholder="e.g. 018XXXXXXXX or Bank Account Info" style="font-size: 0.82rem; padding: 6px 10px;">
+            </div>
+
+            ${methodKey === 'other' ? `
+            <div style="flex: 1; min-width: 120px;">
+              <label class="form-label" style="font-size: 0.72rem; margin-bottom: 2px;">Custom Title</label>
+              <input type="text" class="form-control payment-custom-name" data-index="${idx}" value="${item.customName || ''}" placeholder="Method Title" style="font-size: 0.82rem; padding: 6px 10px;">
+            </div>
+            ` : ''}
+
+            <!-- Enable / Disable Switch -->
+            <div style="display: flex; align-items: center; gap: 6px; background: #FFF; padding: 6px 10px; border-radius: 8px; border: 1px solid #CBD5E1;">
+              <input type="checkbox" class="payment-enable-checkbox" data-index="${idx}" ${isEnabled ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: var(--primary-color);">
+              <span style="font-size: 0.78rem; font-weight: 700; color: ${isEnabled ? '#16A34A' : '#64748B'};">
+                ${isEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+
+            <button type="button" class="btn-outline" onclick="window.removePaymentMethodRow(${idx})" style="color: var(--danger-color, #EF4444); border-color: #FCA5A5; background: #FEF2F2; padding: 8px 12px; border-radius: 8px; cursor: pointer;" title="Delete Method">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.addPaymentMethodRow = () => {
+      const methods = collectPaymentMethodsFromUI();
+      methods.push({ id: 'pm_' + Date.now(), method: 'nagad', customName: 'Nagad', number: '018XXXXXXXX', enabled: true });
+      renderDynamicPaymentMethods(methods);
+    };
+
+    window.removePaymentMethodRow = (index) => {
+      const methods = collectPaymentMethodsFromUI();
+      methods.splice(index, 1);
+      renderDynamicPaymentMethods(methods);
+    };
+
+    window.handlePaymentMethodChange = (index, val) => {
+      const methods = collectPaymentMethodsFromUI();
+      if (methods[index]) methods[index].method = val;
+      renderDynamicPaymentMethods(methods);
+    };
+
+    function collectPaymentMethodsFromUI() {
+      const rows = document.querySelectorAll('#payment-methods-dynamic-container .payment-method-row-card');
+      const list = [];
+      rows.forEach((row, idx) => {
+        const methodSelect = row.querySelector('.payment-method-select');
+        const numberInput = row.querySelector('.payment-number-input');
+        const customNameInput = row.querySelector('.payment-custom-name');
+        const enableCheckbox = row.querySelector('.payment-enable-checkbox');
+
+        const method = methodSelect ? methodSelect.value : 'other';
+        const number = numberInput ? numberInput.value.trim() : '';
+        const customName = customNameInput ? customNameInput.value.trim() : (PAYMENT_METHOD_ICONS[method]?.name || 'Payment Method');
+        const enabled = enableCheckbox ? enableCheckbox.checked : true;
+
+        list.push({
+          id: 'pm_' + idx + '_' + method,
+          method,
+          number,
+          customName,
+          enabled
+        });
+      });
+      return list;
+    }
+
     document.getElementById('adm-payment-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      await saveAdminPaymentSettings(
-        document.getElementById('bkash-num-setting').value,
-        document.getElementById('cod-toggle-setting').checked
-      );
-      showToast('Payment Settings Saved');
+      const list = collectPaymentMethodsFromUI();
+      await saveAdminPaymentSettingsList(list);
+      showToast('Dynamic Payment Methods Saved Successfully!');
+    });
+
+    document.getElementById('adm-social-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const list = collectSocialLinksFromUI();
+      await saveAdminSocialSettings(list);
+      showToast('Dynamic Social Links Saved Successfully!');
     });
 
     document.getElementById('adm-general-form').addEventListener('submit', async (e) => {
