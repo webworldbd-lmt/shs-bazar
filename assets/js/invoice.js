@@ -67,7 +67,7 @@ export function generatePDFInvoice(order) {
   const finalTotal = Number(order.totalAmount || Math.max(0, subtotal + deliveryCharge - discountAmount));
 
   const paymentMethod = (order.paymentMethod || 'cod').toUpperCase();
-  const bKashTxnId = order.bKashTxnId || null;
+  const txnId = order.trxId || order.bKashTxnId || null;
   const orderStatus = order.orderStatus || 'Pending';
 
   const filenameTitle = `Order-${orderId.length > 8 ? orderId.substring(0, 8) : orderId}`;
@@ -180,7 +180,7 @@ export function generatePDFInvoice(order) {
             <h4>Payment Information</h4>
             <p><strong>Payment Method:</strong> ${paymentMethod === 'COD' ? 'Cash on Delivery (COD)' : paymentMethod}</p>
             <p><strong>Payment Status:</strong> ${order.paymentStatus || (paymentMethod === 'COD' ? 'Pending' : 'Submitted')}</p>
-            ${bKashTxnId ? `<p style="margin-top: 4px; color: #B45309;"><strong>bKash TrxID:</strong> <code style="background:#FEF3C7; padding: 2px 6px; border-radius:4px; font-family:monospace; font-weight:bold;">${bKashTxnId}</code></p>` : ''}
+            ${txnId ? `<p style="margin-top: 4px; color: #B45309;"><strong>${paymentMethod} TrxID:</strong> <code style="background:#FEF3C7; padding: 2px 6px; border-radius:4px; font-family:monospace; font-weight:bold;">${txnId}</code></p>` : ''}
           </div>
 
           <table class="totals-table">

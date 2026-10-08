@@ -256,7 +256,7 @@
                 <div style="background: var(--bg-color); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
                   <strong style="color: var(--primary-color); display: block; margin-bottom: 4px;"><i class="fas fa-credit-card"></i> Payment Breakdown</strong>
                   <div><strong>Method:</strong> ${paymentMethod}</div>
-                  ${o.bKashTxnId ? `<div style="color: #D84315; font-weight: 700; margin-top: 2px;">bKash TrxID: ${o.bKashTxnId}</div>` : ''}
+                  ${(o.trxId || o.bKashTxnId) ? `<div style="color: #D84315; font-weight: 700; margin-top: 2px;">${paymentMethod} TrxID: ${o.trxId || o.bKashTxnId}</div>` : ''}
                   <div style="margin-top: 6px; border-top: 1px solid var(--border-color); padding-top: 6px;">
                     <div>Subtotal: ৳${subtotal.toLocaleString('bn-BD')}</div>
                     ${discountAmount > 0 ? `<div style="color: #059669;">Discount: -৳${discountAmount.toLocaleString('bn-BD')}</div>` : ''}

@@ -85,6 +85,12 @@ export async function fetchAdminSettings(forceRefresh = false) {
   const defaultSettings = {
     delivery: { insideKushtia: 100, outsideKushtia: 160 },
     payment: { bKashNumber: '01342697743', codEnabled: true },
+    paymentMethods: [
+      { id: 'cod_1', method: 'cod', customName: 'Cash on Delivery', number: 'Pay cash upon delivery', enabled: true },
+      { id: 'bkash_1', method: 'bkash', customName: 'bKash', number: '01342697743', enabled: true },
+      { id: 'nagad_1', method: 'nagad', customName: 'Nagad', number: '01712345678', enabled: true },
+      { id: 'rocket_1', method: 'rocket', customName: 'Rocket', number: '01812345678', enabled: true }
+    ],
     general: {
       siteName: 'Market Koro',
       hotline: '+8809658183506',
