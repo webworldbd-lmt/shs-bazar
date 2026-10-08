@@ -2467,7 +2467,7 @@
               <div>
                 <h4 style="color: #E65100; font-size: 0.85rem; margin-bottom: 4px;"><i class="fas fa-credit-card"></i> Payment</h4>
                 <div><strong>Method:</strong> ${(o.paymentMethod || 'COD').toUpperCase()}</div>
-                ${o.bKashTxnId ? `<div style="color: #D84315; font-weight: bold;">bKash TrxID: ${o.bKashTxnId}</div>` : ''}
+                ${(o.trxId || o.bKashTxnId) ? `<div style="color: #D84315; font-weight: bold;">${(o.paymentMethod || 'Payment').toUpperCase()} TrxID: ${o.trxId || o.bKashTxnId}</div>` : ''}
               </div>
 
               <div style="text-align: right; min-width: 180px;">
