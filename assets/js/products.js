@@ -229,6 +229,12 @@ export function subscribeToPublishedProducts(onData, onError) {
   }
 }
 
+export function renderBannerSkeleton() {
+  return `
+    <div class="skeleton-banner"></div>
+  `;
+}
+
 export function renderSkeletonCards(count = 4) {
   let items = '';
   for (let i = 0; i < count; i++) {
@@ -321,7 +327,7 @@ export function clearBannerCache() {
   } catch (e) {}
 }
 
-export async function fetchBanners(forceRefresh = false) {
+export async function fetchBanners(forceRefresh = false, retries = 2, delayMs = 1000) {
   if (!forceRefresh && cachedBanners && Array.isArray(cachedBanners)) {
     return cachedBanners;
   }
@@ -339,8 +345,12 @@ export async function fetchBanners(forceRefresh = false) {
     }
   }
 
-  try {
-    const fetchPromise = (async () => {
+  let attempt = 0;
+  let lastError = null;
+
+  while (attempt <= retries) {
+    try {
+      attempt++;
       const snap = await getDocs(collection(db, 'banners'));
       const list = [];
       snap.forEach(docSnap => {
@@ -369,14 +379,35 @@ export async function fetchBanners(forceRefresh = false) {
         sessionStorage.setItem('mk_cached_banners', JSON.stringify(list));
       } catch (e) {}
       return list;
-    })();
-
-    const timeoutPromise = new Promise(resolve => setTimeout(() => resolve([]), 3000));
-    return await Promise.race([fetchPromise, timeoutPromise]);
-  } catch (err) {
-    console.warn('Error fetching banners from Firestore:', err);
-    return [];
+    } catch (err) {
+      lastError = err;
+      console.warn(`[fetchBanners] Attempt ${attempt}/${retries + 1} failed:`, err);
+      if (attempt <= retries) {
+        await new Promise(res => setTimeout(res, delayMs * attempt));
+      }
+    }
   }
+
+  console.error('[fetchBanners] All retries failed to fetch banners from Firestore:', lastError);
+
+  // Fallback to cached banners in sessionStorage if available
+  try {
+    const sessionData = sessionStorage.getItem('mk_cached_banners');
+    if (sessionData) {
+      const parsed = JSON.parse(sessionData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        console.warn('[fetchBanners] Serving cached banners from sessionStorage after fetch failure.');
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
+  if (cachedBanners && Array.isArray(cachedBanners) && cachedBanners.length > 0) {
+    console.warn('[fetchBanners] Serving memory cached banners after fetch failure.');
+    return cachedBanners;
+  }
+
+  return [];
 }
 
 // Generate product card HTML snippet
