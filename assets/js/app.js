@@ -1,5 +1,5 @@
 // Main Application Script (UI Wiring, Search, Cart State, Mobile Nav, PWA Service Worker)
-import { fetchPublishedProducts, subscribeToPublishedProducts, fetchBanners, renderProductCard, renderSkeletonCards, renderErrorState, renderEmptyState, fetchActiveCategories, subscribeToActiveCategories, DEFAULT_BANNERS, getProductShareUrl, FALLBACK_IMAGE } from './products.js';
+import { fetchPublishedProducts, subscribeToPublishedProducts, fetchBanners, renderProductCard, renderSkeletonCards, renderBannerSkeleton, renderErrorState, renderEmptyState, fetchActiveCategories, subscribeToActiveCategories, DEFAULT_BANNERS, getProductShareUrl, FALLBACK_IMAGE } from './products.js';
 import { toggleWishlist, currentUser, logoutUser, onAuthStateUpdate } from './auth.js';
 import { fetchAdminSettings, isSuperAdminUser, SOCIAL_PLATFORM_ICONS } from './admin.js';
 import { getValidCategoryImageUrl } from './category-icons.js';
@@ -646,7 +646,7 @@ export function initSearch(allProducts) {
 let currentSlide = 0;
 let carouselTimer = null;
 
-export function initCarousel(banners) {
+export function initCarousel(banners, isLoading = false) {
   const container = document.getElementById('carousel-container');
   const dotsContainer = document.getElementById('carousel-dots');
   const heroSec = document.querySelector('.hero-section');
@@ -657,6 +657,13 @@ export function initCarousel(banners) {
   }
 
   if (!container || !dotsContainer) return;
+
+  if (isLoading) {
+    if (heroSec) heroSec.style.display = 'block';
+    container.innerHTML = renderBannerSkeleton();
+    dotsContainer.innerHTML = '';
+    return;
+  }
 
   if (!banners || !Array.isArray(banners) || banners.length === 0) {
     container.innerHTML = '';
@@ -987,7 +994,7 @@ async function initApp() {
     const allProductsGrid = document.getElementById('all-products');
 
     if (catGrid) catGrid.innerHTML = '';
-    initCarousel(DEFAULT_BANNERS);
+    initCarousel(null, true);
 
     trendingGrid.innerHTML = renderSkeletonCards(4);
     if (allProductsGrid) {
@@ -1046,53 +1053,56 @@ async function initApp() {
       if (typeof unsubscribeProducts === 'function') unsubscribeProducts();
     });
 
-    // Parallel execution of initial data fetches
+    // Independent parallel execution of initial data fetches for each home section
     const loadHomepageDataParallel = async () => {
-      // Setup realtime listener subscriptions in background
+      // 1. Categories
       if (!unsubscribeCategories) {
         unsubscribeCategories = subscribeToActiveCategories(
           (updatedCats) => renderCategoriesUI(updatedCats),
           (err) => console.warn('[Realtime Categories Error]:', err)
         );
       }
+      fetchActiveCategories()
+        .then(cats => {
+          if (cats) renderCategoriesUI(cats);
+        })
+        .catch(err => console.warn('[fetchActiveCategories Error]:', err));
 
-      // Parallel fetch for Categories, Banners, and Published Products
-      const [categoriesResult, bannersResult, productsResult] = await Promise.allSettled([
-        fetchActiveCategories(),
-        fetchBanners(),
-        fetchPublishedProducts(null, 3, 1000)
-      ]);
+      // 2. Hero Banners
+      fetchBanners()
+        .then(banners => {
+          initCarousel(banners, false);
+        })
+        .catch(err => {
+          console.error('[fetchBanners Error]:', err);
+          initCarousel([], false);
+        });
 
-      if (categoriesResult.status === 'fulfilled' && categoriesResult.value) {
-        renderCategoriesUI(categoriesResult.value);
-      }
+      // 3. Products
+      fetchPublishedProducts(null, 3, 1000)
+        .then(products => {
+          renderHomepageProductsUI(products);
 
-      if (bannersResult.status === 'fulfilled' && Array.isArray(bannersResult.value)) {
-        initCarousel(bannersResult.value);
-      }
-
-      if (productsResult.status === 'fulfilled' && productsResult.value) {
-        renderHomepageProductsUI(productsResult.value);
-
-        if (!isSnapshotActive) {
-          unsubscribeProducts = subscribeToPublishedProducts(
-            (updatedProducts) => {
-              isSnapshotActive = true;
-              renderHomepageProductsUI(updatedProducts);
-            },
-            (error) => console.warn('[Realtime Listener Error]:', error)
-          );
-        }
-      } else {
-        console.error('[loadHomepageProducts Error]:', productsResult.reason);
-        const lang = getCurrentLang();
-        const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
-        const errorHtml = renderErrorState(t.errorLoadingProducts, 'window.retryFetchHomepageProducts()');
-        trendingGrid.innerHTML = errorHtml;
-        if (allProductsGrid) {
-          allProductsGrid.innerHTML = errorHtml;
-        }
-      }
+          if (!isSnapshotActive) {
+            unsubscribeProducts = subscribeToPublishedProducts(
+              (updatedProducts) => {
+                isSnapshotActive = true;
+                renderHomepageProductsUI(updatedProducts);
+              },
+              (error) => console.warn('[Realtime Listener Error]:', error)
+            );
+          }
+        })
+        .catch(err => {
+          console.error('[loadHomepageProducts Error]:', err);
+          const lang = getCurrentLang();
+          const t = TRANSLATIONS[lang] || TRANSLATIONS.en;
+          const errorHtml = renderErrorState(t.errorLoadingProducts, 'window.retryFetchHomepageProducts()');
+          trendingGrid.innerHTML = errorHtml;
+          if (allProductsGrid) {
+            allProductsGrid.innerHTML = errorHtml;
+          }
+        });
     };
 
     window.retryFetchHomepageProducts = () => {
